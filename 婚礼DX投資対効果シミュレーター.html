@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>婚礼DX 投資対効果シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ground:#FBFAF8; --surface:#FFFFFF; --surface-2:#F5F2ED;
+    --ink:#2B2A27; --ink-2:#6C6860; --ink-3:#98938A;
+    --line:#E6E1D8; --line-2:#D6CFC3;
+    --brand:#A89583; --brand-deep:#8A7867;
+    --s1:#12719E; --s2:#C58A00; --s3:#C2517E; --s4:#4A7C3F; --s5:#6A4C93;
+    --pos:#1E7A5A; --neg:#B0483C;
+    --radius:10px;
+    --mono:"Jost","Century Gothic",system-ui,sans-serif;
+    --jp:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#1A1917; --surface:#232220; --surface-2:#2C2A27;
+      --ink:#F1EEE8; --ink-2:#B3ADA3; --ink-3:#878177;
+      --line:#35332E; --line-2:#46433D;
+      --brand:#C4B3A1; --brand-deep:#D9CBBB;
+      --s1:#3392C4; --s2:#B18320; --s3:#C7628C; --s4:#6FA35C; --s5:#9B7BC4;
+      --pos:#4FB08B; --neg:#D97A6D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#1A1917; --surface:#232220; --surface-2:#2C2A27;
+    --ink:#F1EEE8; --ink-2:#B3ADA3; --ink-3:#878177;
+    --line:#35332E; --line-2:#46433D;
+    --brand:#C4B3A1; --brand-deep:#D9CBBB;
+    --s1:#3392C4; --s2:#B18320; --s3:#C7628C; --s4:#6FA35C; --s5:#9B7BC4;
+    --pos:#4FB08B; --neg:#D97A6D;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--jp);
+       font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1360px;margin:0 auto;padding-inline:20px;padding-block:0 56px}
+  a{color:var(--brand-deep)} a:hover{color:var(--ink)}
+  h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+
+  /* header */
+  header{border-bottom:1px solid var(--line);background:var(--surface);
+         position:sticky;top:0;z-index:20}
+  .hd{max-width:1360px;margin:0 auto;padding:16px 20px;display:flex;gap:20px;
+      align-items:center;flex-wrap:wrap}
+  .hd .mark{font-family:var(--mono);letter-spacing:.34em;font-size:11px;color:var(--brand)}
+  .hd h1{font-size:19px;letter-spacing:.01em}
+  .hd .sub{font-size:11.5px;color:var(--ink-2);margin-top:2px}
+  .spacer{flex:1 1 auto}
+  .scen{display:flex;gap:0;border:1px solid var(--line-2);border-radius:999px;overflow:hidden}
+  .scen button{font-family:var(--jp);font-size:12px;padding:7px 16px;border:0;cursor:pointer;
+    background:transparent;color:var(--ink-2);transition:background .15s,color .15s}
+  .scen button[aria-pressed="true"]{background:var(--brand);color:#fff}
+  .scen button:focus-visible{outline:2px solid var(--s1);outline-offset:-2px}
+  .ghost{font-family:var(--jp);font-size:12px;padding:7px 14px;border:1px solid var(--line-2);
+    background:transparent;color:var(--ink-2);border-radius:999px;cursor:pointer}
+  .ghost:hover{color:var(--ink);border-color:var(--ink-3)}
+
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:24px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+       padding:14px 16px 16px}
+  .kpi .lab{font-size:10.5px;color:var(--ink-2);letter-spacing:.04em}
+  .kpi .val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:27px;
+            font-weight:600;line-height:1.25;margin-top:6px}
+  .kpi .unit{font-size:12px;font-weight:500;color:var(--ink-2);margin-left:2px}
+  .kpi .foot{font-size:10px;color:var(--ink-3);margin-top:4px}
+  .kpi.hero{background:var(--brand);border-color:var(--brand)}
+  .kpi.hero .lab,.kpi.hero .foot{color:#F3EDE6}
+  .kpi.hero .val{color:#fff} .kpi.hero .unit{color:#F3EDE6}
+
+  /* body grid */
+  .cols{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;margin-top:22px;
+        align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+  .panel > h2{font-size:13px;padding:14px 18px;border-bottom:1px solid var(--line);
+              letter-spacing:.03em}
+  .panel .bd{padding:16px 18px}
+  aside{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow-y:auto}
+
+  fieldset{border:0;margin:0;padding:0 0 6px}
+  fieldset + fieldset{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
+  legend{font-size:11.5px;font-weight:700;color:var(--ink);padding:0;display:flex;
+         align-items:center;gap:7px}
+  .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .fld{display:grid;grid-template-columns:1fr 74px 36px;gap:8px;align-items:center;margin-top:9px}
+  .fld label{font-size:11.5px;color:var(--ink-2)}
+  .fld input{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;
+    text-align:right;padding:6px 8px;border:1px solid var(--line-2);border-radius:6px;
+    background:var(--surface);color:var(--ink);width:100%}
+  .fld input:focus{outline:2px solid var(--s1);outline-offset:1px;border-color:var(--s1)}
+  .fld .suf{font-size:10.5px;color:var(--ink-3);text-align:left;margin-left:-2px;white-space:nowrap}
+  
+
+  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  @media (max-width:1080px){
+    .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .cols{grid-template-columns:1fr}
+    aside{position:static;max-height:none}
+  }
+  @media (max-width:640px){
+    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .cards{grid-template-columns:1fr}
+    .hd h1{font-size:16px}
+  }
+
+  svg{display:block;width:100%;height:auto}
+  .chartnote{font-size:10.5px;color:var(--ink-3);padding:0 18px 14px}
+
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:10.5px;color:var(--ink-2);font-weight:500;border-bottom:1px solid var(--line-2)}
+  tbody td.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  tr.sum td{font-weight:700;border-top:1px solid var(--line-2)}
+  tr.cost td{color:var(--neg)}
+  .tagdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px;
+          vertical-align:1px}
+  .tbwrap{overflow-x:auto}
+
+  .be{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .be > div{background:var(--surface-2);border-radius:8px;padding:12px 14px}
+  .be .t{font-size:11px;color:var(--ink-2)}
+  .be .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:21px;
+         font-weight:600;margin-top:3px}
+  .be .d{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+  @media (max-width:640px){.be{grid-template-columns:1fr}}
+
+  footer{margin-top:30px;font-size:11px;color:var(--ink-3);line-height:1.9}
+  footer strong{color:var(--ink-2);font-weight:500}
+  .pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;
+        border:1px solid var(--line-2);color:var(--ink-2);margin-left:8px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header>
+  <div class="hd">
+    <div>
+      <div class="mark">TRICE PIED</div>
+      <h1>婚礼DX 投資対効果シミュレーター</h1>
+      <div class="sub">株式会社オンザページ 御中｜旧ノバレーゼ 40会場ベース／前提を変えると、すべての数字とグラフがその場で再計算されます</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="scen" role="group" aria-label="シナリオ">
+      <button id="sc-low" type="button" aria-pressed="true">控えめ</button>
+      <button id="sc-mid" type="button" aria-pressed="false">基準</button>
+      <button id="sc-high" type="button" aria-pressed="false">拡大</button>
+    </div>
+    <button class="ghost" id="reset" type="button">初期値に戻す</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="kpis">
+    <div class="kpi"><div class="lab">1会場 売上インパクト</div>
+      <div class="val num" id="k-rev">–</div><div class="foot">年間・純増ベース</div></div>
+    <div class="kpi"><div class="lab">1会場 利益インパクト</div>
+      <div class="val num" id="k-prof">–</div><div class="foot">貢献利益率を適用後</div></div>
+    <div class="kpi"><div class="lab">1会場 システム費用</div>
+      <div class="val num" id="k-cost">–</div><div class="foot">全8システム合計・年間</div></div>
+    <div class="kpi hero"><div class="lab">差引（1会場・年間）</div>
+      <div class="val num" id="k-net">–</div><div class="foot" id="k-netfoot">利益 − 費用</div></div>
+    <div class="kpi"><div class="lab">投資対効果（ROI）</div>
+      <div class="val num" id="k-roi">–</div><div class="foot">差引 ÷ システム費用</div></div>
+    <div class="kpi"><div class="lab">全社 差引</div>
+      <div class="val num" id="k-total">–</div><div class="foot" id="k-totalfoot">会場数で換算</div></div>
+  </div>
+
+  <div class="cols">
+    <aside>
+      <div class="panel">
+        <h2>前提の入力</h2>
+        <div class="bd">
+          <fieldset>
+            <legend><span class="dot" style="background:var(--brand)"></span>共通前提</legend>
+            <div class="fld"><label for="i_venues">婚礼会場数</label><input id="i_venues" type="number" step="1" min="1"><span class="suf">会場</span></div>
+            <div class="fld"><label for="i_weddings">年間施行組数（全社）</label><input id="i_weddings" type="number" step="1" min="1"><span class="suf">組</span></div>
+            <div class="fld"><label for="i_price">平均組単価</label><input id="i_price" type="number" step="0.1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="i_guests">平均ゲスト数</label><input id="i_guests" type="number" step="0.1"><span class="suf">名</span></div>
+            <div class="fld"><label for="i_margin">貢献利益率</label><input id="i_margin" type="number" step="1" min="0" max="100"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_wage">人件費（時給）</label><input id="i_wage" type="number" step="50"><span class="suf">円</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--s1)"></span>① TASCUT｜媒体への一括入稿</legend>
+            <div class="fld"><label for="i_media">契約媒体数</label><input id="i_media" type="number" step="1" min="1"><span class="suf">媒体</span></div>
+            <div class="fld"><label for="i_hpm">1媒体あたり登録・更新</label><input id="i_hpm" type="number" step="0.5"><span class="suf">h/月</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--s2)"></span>② FUWEL｜自社HP集客</legend>
+            <div class="fld"><label for="i_hpbase">エリア平均 自社HP予約</label><input id="i_hpbase" type="number" step="0.1"><span class="suf">件/月</span></div>
+            <div class="fld"><label for="i_uplift">予約数の増加</label><input id="i_uplift" type="number" step="5"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_visit2">予約 → 来館率</label><input id="i_visit2" type="number" step="5"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_close2">来館 → 成約率</label><input id="i_close2" type="number" step="5"><span class="suf">%</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--s3)"></span>③ SIRCLE Marketing｜ゲストメルマガ</legend>
+            <div class="fld"><label for="i_consent">配信承諾率</label><input id="i_consent" type="number" step="1"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_prospect">結婚期待層の割合</label><input id="i_prospect" type="number" step="1"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_visit">DM → 来館率</label><input id="i_visit" type="number" step="0.1"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_close">来館 → 成約率</label><input id="i_close" type="number" step="1"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_cannib">媒体重複の控除率</label><input id="i_cannib" type="number" step="5"><span class="suf">%</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--s4)"></span>④ SIRCLE 準備｜打合せ・準備工程</legend>
+            <div class="fld"><label for="i_hmtg">打合せ 削減時間</label><input id="i_hmtg" type="number" step="0.5"><span class="suf">h/組</span></div>
+            <div class="fld"><label for="i_hmin">議事録・共有 削減時間</label><input id="i_hmin" type="number" step="0.5"><span class="suf">h/組</span></div>
+            <div class="fld"><label for="i_hseat">席次表 削減時間</label><input id="i_hseat" type="number" step="0.5"><span class="suf">h/組</span></div>
+            <div class="fld"><label for="i_ec">引出物EC 粗利増</label><input id="i_ec" type="number" step="1000"><span class="suf">円/組</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--s5)"></span>⑤ FUWEL MICE｜宴会・法人</legend>
+            <div class="fld"><label for="i_banq">新規宴会成約</label><input id="i_banq" type="number" step="0.5"><span class="suf">件/月</span></div>
+            <div class="fld"><label for="i_banqp">宴会の平均単価</label><input id="i_banqp" type="number" step="1"><span class="suf">万円</span></div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--ink-3)"></span>システム費用（1会場・月額）</legend>
+            <div class="fld"><label for="c_tascut">TASCUT</label><input id="c_tascut" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_fuwel">FUWEL</label><input id="c_fuwel" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_mice">FUWEL MICE</label><input id="c_mice" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_erp">SIRCLE 基幹</label><input id="c_erp" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_prep">SIRCLE 準備</label><input id="c_prep" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_ma">SIRCLE Marketing</label><input id="c_ma" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_prepu">SIRCLE 準備 従量</label><input id="c_prepu" type="number" step="0.1"><span class="suf">万円/組</span></div>
+            <div class="fld"><label for="c_inprint">INPRINT 従量</label><input id="c_inprint" type="number" step="0.1"><span class="suf">万円/組</span></div>
+          </fieldset>
+        </div>
+      </div>
+    </aside>
+
+    <main style="display:grid;gap:18px">
+      <div class="cards">
+        <section class="panel">
+          <h2>施策別の利益インパクトと、システム費用の壁</h2>
+          <div style="padding:16px 18px 4px"><svg id="chart1" viewBox="0 0 560 284" role="img"
+            aria-label="施策別の年間利益インパクトと、年間システム費用の比較"></svg></div>
+          <p class="chartnote">縦の破線が全8システム分の年間費用。バーがこの線を越えた分が差引の利益になります。</p>
+        </section>
+
+        <section class="panel">
+          <h2>3シナリオの差引（1会場・年間）</h2>
+          <div style="padding:16px 18px 4px"><svg id="chart2" viewBox="0 0 560 240" role="img"
+            aria-label="控えめ・基準・拡大の3シナリオにおける年間差引利益"></svg></div>
+          <p class="chartnote">①②③の主要な前提を、控えめ／基準／拡大の3水準で振ったときの差引です。</p>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>損益分岐｜システム費用を1施策だけで回収するには</h2>
+        <div class="bd">
+          <div class="be">
+            <div><div class="t">集客だけで回収するなら</div>
+              <div class="v" id="be1">–</div><div class="d" id="be1d">年間の追加成約</div></div>
+            <div><div class="t">工数削減だけで回収するなら</div>
+              <div class="v" id="be2">–</div><div class="d" id="be2d">年間の削減時間</div></div>
+            <div><div class="t">宴会だけで回収するなら</div>
+              <div class="v" id="be3">–</div><div class="d" id="be3d">年間の新規宴会成約</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>明細｜1会場あたり・年間</h2>
+        <div class="tbwrap">
+          <table>
+            <thead><tr><th>項目</th><th>前提</th><th>売上インパクト</th><th>利益インパクト</th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <strong>前提の出典</strong>　試算対象は旧ノバレーゼの40会場です（旧エスクリの28会場は含みません）。婚礼会場数40会場は2026年2月の経営統合に関する報道発表資料、年間施行組数 約4,800組は全社計画8,061組の会場数按分、平均組単価371.0万円は旧ノバレーゼ直近実績、平均ゲスト数55.3名は2026年12月期 第1四半期決算説明資料。エリア平均の自社HP予約 月8.8件は、御社40会場が所在する29都道府県におけるFUWEL導入447会場の実測値（2025年9月〜2026年8月／会場数加重平均）。配信承諾率50%・来館→成約率50%は当社「SIRCLE MARKETING 概要書 ver2.1」の収益試算で用いている値。<br>
+    <strong>当社が仮定を置いている項目</strong>　1媒体あたりの登録・更新時間／自社HP予約の増加率／各工程の削減時間／引出物ECの粗利増／宴会の平均単価・成約件数／貢献利益率／媒体重複の控除率。いずれも左の入力欄で変更できます。<br>
+    <strong>ご注意</strong>　本シミュレーターは意思決定の材料としてご提供するものであり、成果を保証するものではありません。システム費用は定価ベースで、初期費用は含みません。複数会場でのご契約には別途プランをご用意しています。
+    <span class="pill">株式会社トライスパイド</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const D = {
+    venues:40, weddings:4800, price:371.0, guests:55.3, margin:50, wage:1800,
+    media:3, hpm:2.5,
+    hpbase:8.8, uplift:10, visit2:70, close2:50,
+    consent:50, prospect:15, visit:2, close:50, cannib:50,
+    hmtg:3, hmin:1.5, hseat:2, ec:15000,
+    banq:1, banqp:30,
+    c_tascut:1, c_fuwel:5, c_mice:5, c_erp:20, c_prep:5, c_ma:5,
+    c_prepu:1, c_inprint:1
+  };
+  const SCEN = {
+    low: {media:3, hpm:2.5, uplift:10, prospect:15, visit:2, hmtg:3,   hmin:1.5, hseat:2,   ec:15000, banq:1},
+    mid: {media:5, hpm:4,   uplift:20, prospect:20, visit:3, hmtg:4,   hmin:2,   hseat:2.5, ec:20000, banq:2},
+    high:{media:6, hpm:6,   uplift:30, prospect:25, visit:5, hmtg:5,   hmin:2.5, hseat:3,   ec:25000, banq:3}
+  };
+  const ids = Object.keys(D);
+  const el = id => document.getElementById(id);
+  const inp = k => el(k.startsWith('c_') ? k : 'i_'+k);
+  const get = k => { const v = parseFloat(inp(k).value); return isFinite(v) ? v : D[k]; };
+  const fmt = (v,d=0) => v.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const man = v => fmt(Math.round(v));
+
+  function calc(over){
+    const g = {}; ids.forEach(k => g[k] = get(k));
+    if (over) Object.assign(g, over);
+    const w = g.weddings / g.venues;              // 1会場あたり年間施行数
+    const m = g.margin/100;
+    const perGuest = g.price / g.guests;
+
+    // ① TASCUT：媒体をまたぐ重複入稿の削減（人件費がそのまま残るため全額を利益）
+    const hrs1 = Math.max(g.media-1,0) * g.hpm * 12;
+    const val1 = hrs1 * g.wage / 10000;
+    const rev1 = 0, prof1 = val1;
+
+    // ② FUWEL：自社HP経由の予約増 → 来館 → 成約
+    const base2 = g.hpbase * 12;
+    const add2  = base2 * (g.uplift/100);
+    const deals2 = add2 * (g.visit2/100) * (g.close2/100);
+    const rev2 = deals2 * g.price;
+    const prof2 = rev2 * m;
+
+    // ③ SIRCLE Marketing：参列ゲストへのDM
+    const list = w * g.guests * (g.consent/100);
+    const prospects = list * (g.prospect/100);
+    const visits = prospects * (g.visit/100);
+    const deals3 = visits * (g.close/100);
+    const rev3g = deals3 * g.price;
+    const rev3 = rev3g * (1 - g.cannib/100);
+    const prof3 = rev3 * m;
+
+    // ④ SIRCLE 準備：工数削減＋引出物EC粗利（いずれも全額を利益）
+    const hrs4 = (g.hmtg + g.hmin + g.hseat) * w;
+    const val4h = hrs4 * g.wage / 10000;
+    const val4e = w * (g.ec/10000);
+    const rev4 = val4h + val4e, prof4 = rev4;
+
+    // ⑤ FUWEL MICE：宴会・法人
+    const rev5 = g.banq * 12 * g.banqp;
+    const prof5 = rev5 * m;
+
+    const cost = {
+      TASCUT:g.c_tascut*12, FUWEL:g.c_fuwel*12, 'FUWEL MICE':g.c_mice*12,
+      'SIRCLE 基幹':g.c_erp*12, 'SIRCLE 準備':g.c_prep*12 + g.c_prepu*w,
+      'SIRCLE Marketing':g.c_ma*12, INPRINT:g.c_inprint*w
+    };
+    const costTotal = Object.values(cost).reduce((a,b)=>a+b,0);
+
+    const rev = rev1+rev2+rev3+rev4+rev5;
+    const prof = prof1+prof2+prof3+prof4+prof5;
+    return {g,w,m,perGuest,
+            hrs1,val1,rev1,prof1,
+            base2,add2,deals2,rev2,prof2,
+            list,prospects,visits,deals3,rev3g,rev3,prof3,
+            hrs4,val4h,val4e,rev4,prof4,
+            rev5,prof5,
+            cost,costTotal,rev,prof,net:prof-costTotal,
+            roi:costTotal>0?(prof-costTotal)/costTotal*100:0};
+  }
+
+  /* ---------- charts ---------- */
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const SVGNS='http://www.w3.org/2000/svg';
+  function mk(t,a,parent){const e=document.createElementNS(SVGNS,t);
+    for(const k in a) e.setAttribute(k,a[k]); if(parent) parent.appendChild(e); return e;}
+
+  function chart1(r){
+    const s=el('chart1'); s.innerHTML='';
+    const W=560,H=284,L=132,R=24,T=18,B=34;
+    const rows=[['① TASCUT',r.prof1,css('--s1')],
+                ['② FUWEL',r.prof2,css('--s2')],
+                ['③ ゲストメルマガ',r.prof3,css('--s3')],
+                ['④ SIRCLE 準備',r.prof4,css('--s4')],
+                ['⑤ FUWEL MICE',r.prof5,css('--s5')]];
+    const max=Math.max(r.costTotal,...rows.map(d=>d[1]))*1.18||1;
+    const x=v=>L+(W-L-R)*v/max;
+    const bh=30, gap=14;
+    // grid
+    for(let i=0;i<=4;i++){const v=max*i/4;
+      mk('line',{x1:x(v),y1:T,x2:x(v),y2:H-B,stroke:css('--line'),'stroke-width':1},s);
+      mk('text',{x:x(v),y:H-B+16,'text-anchor':'middle','font-size':10,
+        fill:css('--ink-3'),'font-family':'Jost, sans-serif'},s).textContent=man(v);
+    }
+    rows.forEach((d,i)=>{
+      const y=T+i*(bh+gap);
+      mk('text',{x:0,y:y+bh/2+4,'font-size':10.5,fill:css('--ink-2')},s).textContent=d[0];
+      const bw=Math.max(x(d[1])-L,0);
+      const g=mk('g',{},s);
+      mk('rect',{x:L,y:y,width:bw,height:bh,rx:4,fill:d[2]},g);
+      mk('title',{},g).textContent=d[0]+'：年間 '+man(d[1])+' 万円の利益インパクト';
+      const inside=bw>78;
+      mk('text',{x:inside?L+bw-10:L+bw+8,y:y+bh/2+5,'text-anchor':inside?'end':'start',
+        'font-size':12,'font-weight':600,fill:inside?'#fff':css('--ink'),
+        'font-family':'Jost, sans-serif'},s).textContent=man(d[1])+' 万円';
+    });
+    // cost line
+    const cx=x(r.costTotal);
+    mk('line',{x1:cx,y1:T-8,x2:cx,y2:H-B+4,stroke:css('--neg'),'stroke-width':2,
+      'stroke-dasharray':'5 4'},s);
+    const lblRight = cx < W-190;
+    mk('text',{x:lblRight?cx+7:cx-7,y:T-1,'text-anchor':lblRight?'start':'end',
+      'font-size':10.5,fill:css('--neg'),'font-weight':600},s)
+      .textContent='年間システム費用 '+man(r.costTotal)+' 万円';
+    mk('text',{x:0,y:H-4,'font-size':10,fill:css('--ink-3')},s).textContent='単位：万円／年（1会場あたり）';
+  }
+
+  function chart2(r){
+    const s=el('chart2'); s.innerHTML='';
+    const W=560,H=240,L=42,R=16,T=28,B=44;
+    const res=['low','mid','high'].map(k=>{
+      const o=Object.assign({},SCEN[k]); return calc(o).net;});
+    const labs=['控えめ','基準','拡大'];
+    const vals=res;
+    const maxV=Math.max(0,...vals), minV=Math.min(0,...vals);
+    const span=(maxV-minV)||1, pad=span*0.15;
+    const hi=maxV+pad, lo=minV-((minV<0)?pad:0);
+    const y=v=>T+(H-T-B)*(hi-v)/((hi-lo)||1);
+    const bw=74, step=(W-L-R)/3;
+    // zero line
+    mk('line',{x1:L,y1:y(0),x2:W-R,y2:y(0),stroke:css('--line-2'),'stroke-width':1},s);
+    mk('text',{x:0,y:y(0)+4,'font-size':10,fill:css('--ink-3'),'font-family':'Jost, sans-serif'},s).textContent='0';
+    vals.forEach((v,i)=>{
+      const cx=L+step*i+step/2;
+      const top=Math.min(y(v),y(0)), h=Math.abs(y(v)-y(0));
+      const col=v>=0?css('--pos'):css('--neg');
+      const g=mk('g',{},s);
+      mk('rect',{x:cx-bw/2,y:top,width:bw,height:Math.max(h,2),rx:4,fill:col},g);
+      mk('title',{},g).textContent=labs[i]+'シナリオ：差引 '+man(v)+' 万円／会場・年';
+      mk('text',{x:cx,y:v>=0?top-9:top+h+18,'text-anchor':'middle','font-size':14,
+        'font-weight':600,fill:col,'font-family':'Jost, sans-serif'},s)
+        .textContent=(v>=0?'＋':'▲')+man(Math.abs(v));
+      mk('text',{x:cx,y:H-18,'text-anchor':'middle','font-size':11.5,fill:css('--ink-2')},s)
+        .textContent=labs[i];
+    });
+    mk('text',{x:0,y:H-2,'font-size':10,fill:css('--ink-3')},s).textContent='単位：万円／年（1会場あたり・システム費用控除後）';
+  }
+
+  function table(r){
+    const dot=v=>'<span class="tagdot" style="background:var(--'+v+')"></span>';
+    const rows=[
+      [dot('s1')+'① TASCUT｜重複入稿の削減',
+        fmt(r.g.media,0)+'媒体 / '+fmt(r.hrs1,0)+' h', null, r.prof1],
+      [dot('s2')+'② FUWEL｜自社HP経由の新規成約',
+        fmt(r.deals2,1)+' 組', r.rev2, r.prof2],
+      [dot('s3')+'③ ゲストメルマガ経由の新規成約',
+        fmt(r.deals3,1)+' 組', r.rev3, r.prof3],
+      [dot('s4')+'④ SIRCLE 準備 小計','', r.rev4, r.prof4],
+      ['\u3000└ 工数削減','▲'+fmt(r.g.hmtg+r.g.hmin+r.g.hseat,1)+' h/組', r.val4h, r.val4h],
+      ['\u3000└ 引出物ECの粗利増','+'+fmt(r.g.ec/10000,1)+' 万円/組', r.val4e, r.val4e],
+      [dot('s5')+'⑤ 宴会・MICEの新規成約',
+        fmt(r.g.banq*12,0)+' 件/年', r.rev5, r.prof5]
+    ];
+    let h='';
+    rows.forEach(x=>{h+='<tr><td>'+x[0]+'</td><td class="n">'+x[1]+'</td><td class="n">'+
+      (x[2]===null?'–':man(x[2]))+'</td><td class="n">'+man(x[3])+'</td></tr>';});
+    h+='<tr class="sum"><td>効果 合計</td><td></td><td class="n">'+man(r.rev)+
+       '</td><td class="n">'+man(r.prof)+'</td></tr>';
+    Object.entries(r.cost).forEach(([k,v])=>{
+      h+='<tr class="cost"><td>\u3000'+k+'</td><td></td><td class="n">–</td><td class="n">▲'+man(v)+'</td></tr>';
+    });
+    h+='<tr class="sum cost"><td>システム費用 合計</td><td></td><td class="n">–</td><td class="n">▲'+
+       man(r.costTotal)+'</td></tr>';
+    h+='<tr class="sum"><td>差引</td><td></td><td class="n">–</td><td class="n" style="color:'+
+       (r.net>=0?'var(--pos)':'var(--neg)')+'">'+(r.net>=0?'＋':'▲')+man(Math.abs(r.net))+'</td></tr>';
+    el('tb').innerHTML=h;
+  }
+
+  function render(){
+    const r=calc();
+    el('k-rev').innerHTML=man(r.rev)+'<span class="unit">万円</span>';
+    el('k-prof').innerHTML=man(r.prof)+'<span class="unit">万円</span>';
+    el('k-cost').innerHTML=man(r.costTotal)+'<span class="unit">万円</span>';
+    el('k-net').innerHTML=(r.net>=0?'＋':'▲')+man(Math.abs(r.net))+'<span class="unit">万円</span>';
+    el('k-netfoot').textContent=r.net>=0?'利益 − 費用':'費用が利益を上回っています';
+    el('k-roi').innerHTML=fmt(r.roi,0)+'<span class="unit">%</span>';
+    const total=r.net*r.g.venues;
+    el('k-total').innerHTML=(total>=0?'＋':'▲')+fmt(Math.abs(total)/10000,2)+'<span class="unit">億円</span>';
+    el('k-totalfoot').textContent=fmt(r.g.venues,0)+'会場 × '+man(r.net)+'万円';
+
+    // breakeven
+    const perDeal=r.g.price*r.m;
+    el('be1').textContent=fmt(r.costTotal/perDeal,1)+' 組';
+    el('be1d').textContent='年間の追加成約（②＋③の試算合計は '+fmt(r.deals2+r.deals3,1)+' 組）';
+    const hrsNeed=r.costTotal*10000/r.g.wage;
+    el('be2').textContent=fmt(hrsNeed,0)+' 時間';
+    el('be2d').textContent='年間の削減時間（①＋④の試算合計は '+fmt(r.hrs1+r.hrs4,0)+' 時間）';
+    const perBanq=r.g.banqp*r.m;
+    el('be3').textContent=fmt(r.costTotal/perBanq,1)+' 件';
+    el('be3d').textContent='年間の新規宴会成約（月 '+fmt(r.costTotal/perBanq/12,1)+' 件）';
+
+    chart1(r); chart2(r); table(r);
+  }
+
+  function setAll(o){ ids.forEach(k=>{ if(k in o) inp(k).value=o[k]; }); }
+  function applyScenario(name){
+    setAll(SCEN[name]);
+    ['low','mid','high'].forEach(k=>{
+      el('sc-'+k).setAttribute('aria-pressed', String(k===name));
+    });
+    render();
+  }
+  function clearScenario(){
+    ['low','mid','high'].forEach(k=>el('sc-'+k).setAttribute('aria-pressed','false'));
+  }
+
+  setAll(D);
+  ids.forEach(k=>{ inp(k).addEventListener('input',()=>{clearScenario();render();}); });
+  el('sc-low').addEventListener('click',()=>applyScenario('low'));
+  el('sc-mid').addEventListener('click',()=>applyScenario('mid'));
+  el('sc-high').addEventListener('click',()=>applyScenario('high'));
+  el('reset').addEventListener('click',()=>{setAll(D);applyScenario('low');});
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+  applyScenario('low');
+})();
+</script>
+
+</body>
+</html>
