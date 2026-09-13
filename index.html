@@ -138,14 +138,48 @@
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
+<style>
+  /* --- 会場単位シミュレーション用の追加スタイル --- */
+  .vpick{display:flex;align-items:center;gap:8px}
+  .vpick select{font-family:var(--jp);font-size:12.5px;padding:7px 10px;border-radius:8px;
+    border:1px solid var(--line-2);background:var(--surface);color:var(--ink);max-width:260px}
+  .vpick select:focus{outline:2px solid var(--s1);outline-offset:1px}
+  .btn{font-family:var(--jp);font-size:12px;padding:7px 16px;border:0;border-radius:999px;
+    background:var(--brand);color:#fff;cursor:pointer}
+  .btn:hover{background:var(--brand-deep)}
+  .btn[disabled]{opacity:.45;cursor:default}
+  .btn.sm{font-size:11px;padding:6px 13px}
+  .savebar{display:flex;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line);
+    background:var(--surface-2);border-radius:0 0 var(--radius) var(--radius)}
+  .savebar .msg{font-size:10.5px;color:var(--ink-3);flex:1 1 auto}
+  .hint{grid-column:1 / -1;font-size:10px;color:var(--ink-3);line-height:1.5;margin-top:-3px}
+  .badge{display:inline-block;font-size:9.5px;padding:1px 7px;border-radius:999px;
+    border:1px solid var(--line-2);color:var(--ink-3)}
+  .badge.on{background:var(--pos);border-color:var(--pos);color:#fff}
+  tbody tr.vrow{cursor:pointer}
+  tbody tr.vrow:hover td{background:var(--surface-2)}
+  tbody tr.vrow.sel td{background:var(--surface-2);font-weight:700}
+  tbody tr.vrow.sel td:first-child{box-shadow:inset 3px 0 0 var(--brand)}
+  .vtable{max-height:520px;overflow-y:auto}
+  .vtable thead th{position:sticky;top:0;background:var(--surface);z-index:2}
+  .note{font-size:10.5px;color:var(--ink-3);padding:10px 18px 14px;line-height:1.7}
+  .dbwarn{margin:0 18px 14px;padding:10px 12px;border-radius:8px;font-size:11px;
+    background:var(--surface-2);color:var(--ink-2);line-height:1.6}
+</style>
+
 <header>
   <div class="hd">
     <div>
       <div class="mark">TRICE PIED</div>
       <h1>婚礼DX 投資対効果シミュレーター</h1>
-      <div class="sub">株式会社オンザページ 御中｜旧ノバレーゼ 40会場ベース／前提を変えると、すべての数字とグラフがその場で再計算されます</div>
+      <div class="sub">株式会社オンザページ 御中｜会場ごとに前提を入れて保存すると、全39会場の合計が積み上がります</div>
     </div>
     <div class="spacer"></div>
+    <div class="vpick">
+      <label for="vsel" style="font-size:11px;color:var(--ink-2)">会場</label>
+      <select id="vsel" aria-label="会場を選択"></select>
+    </div>
+    <span class="pill" id="storemode" title="入力した値の保存先">保存先を確認中…</span>
     <div class="scen" role="group" aria-label="シナリオ">
       <button id="sc-low" type="button" aria-pressed="true">控えめ</button>
       <button id="sc-mid" type="button" aria-pressed="false">基準</button>
@@ -158,29 +192,49 @@
 <div class="wrap">
 
   <div class="kpis">
-    <div class="kpi"><div class="lab">1会場 売上インパクト</div>
-      <div class="val num" id="k-rev">–</div><div class="foot">年間・純増ベース</div></div>
-    <div class="kpi"><div class="lab">1会場 利益インパクト</div>
-      <div class="val num" id="k-prof">–</div><div class="foot">貢献利益率を適用後</div></div>
-    <div class="kpi"><div class="lab">1会場 システム費用</div>
-      <div class="val num" id="k-cost">–</div><div class="foot">全8システム合計・年間</div></div>
-    <div class="kpi hero"><div class="lab">差引（1会場・年間）</div>
-      <div class="val num" id="k-net">–</div><div class="foot" id="k-netfoot">利益 − 費用</div></div>
-    <div class="kpi"><div class="lab">投資対効果（ROI）</div>
-      <div class="val num" id="k-roi">–</div><div class="foot">差引 ÷ システム費用</div></div>
-    <div class="kpi"><div class="lab">全社 差引</div>
-      <div class="val num" id="k-total">–</div><div class="foot" id="k-totalfoot">会場数で換算</div></div>
+    <div class="kpi hero"><div class="lab">全39会場 合計 差引</div>
+      <div class="val num" id="k-all">–</div><div class="foot" id="k-allfoot">年間・システム費用控除後</div></div>
+    <div class="kpi"><div class="lab">全39会場 利益インパクト</div>
+      <div class="val num" id="k-allprof">–</div><div class="foot">年間・貢献利益率を適用後</div></div>
+    <div class="kpi"><div class="lab">全39会場 システム費用</div>
+      <div class="val num" id="k-allcost">–</div><div class="foot">年間・全8システム</div></div>
+    <div class="kpi"><div class="lab">全社 ROI</div>
+      <div class="val num" id="k-allroi">–</div><div class="foot">合計差引 ÷ 合計費用</div></div>
+    <div class="kpi"><div class="lab" id="k-onelab">選択中の会場 差引</div>
+      <div class="val num" id="k-one">–</div><div class="foot" id="k-onefoot">年間・1会場</div></div>
+    <div class="kpi"><div class="lab">保存済みの会場</div>
+      <div class="val num" id="k-saved">–</div><div class="foot">未保存の会場は初期値で試算しています</div></div>
   </div>
 
   <div class="cols">
     <aside>
       <div class="panel">
-        <h2>前提の入力</h2>
+        <h2 id="vh">この会場の前提</h2>
         <div class="bd">
           <fieldset>
-            <legend><span class="dot" style="background:var(--brand)"></span>共通前提</legend>
-            <div class="fld"><label for="i_venues">婚礼会場数</label><input id="i_venues" type="number" step="1" min="1"><span class="suf">会場</span></div>
-            <div class="fld"><label for="i_weddings">年間施行組数（全社）</label><input id="i_weddings" type="number" step="1" min="1"><span class="suf">組</span></div>
+            <legend><span class="dot" style="background:var(--brand)"></span><span id="vlegend">会場</span></legend>
+            <div class="fld"><label for="v_weddings">年間施行組数</label><input id="v_weddings" type="number" step="1" min="1"><span class="suf">組</span></div>
+            <div class="fld"><label for="v_media">契約媒体数</label><input id="v_media" type="number" step="1" min="1" max="12"><span class="suf">媒体</span></div>
+            <div class="fld"><label for="v_hpm">1媒体あたり登録・更新</label><input id="v_hpm" type="number" step="0.5"><span class="suf">h/月</span></div>
+            <div class="hint">TASCUTで1回に集約できる作業量。媒体数−1ぶんが削減時間になります。</div>
+            <div class="fld"><label for="v_hpbase">エリア平均 自社HP予約</label><input id="v_hpbase" type="number" step="0.1"><span class="suf">件/月</span></div>
+            <div class="hint" id="v_area_hint">–</div>
+            <div class="fld"><label for="v_uplift">自社HP予約の増加</label><input id="v_uplift" type="number" step="5"><span class="suf">%</span></div>
+            <div class="fld"><label for="v_banq">新規宴会成約</label><input id="v_banq" type="number" step="0.5"><span class="suf">件/月</span></div>
+          </fieldset>
+        </div>
+        <div class="savebar">
+          <button class="btn sm" id="vsave" type="button" style="white-space:nowrap">この会場を保存</button>
+          <button class="ghost" id="vclear" type="button" style="font-size:11px;padding:6px 12px;white-space:nowrap">この会場だけ戻す</button>
+          <span class="msg" id="vmsg"></span>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:18px">
+        <h2>全会場に共通の前提</h2>
+        <div class="bd">
+          <fieldset>
+            <legend><span class="dot" style="background:var(--ink-3)"></span>共通</legend>
             <div class="fld"><label for="i_price">平均組単価</label><input id="i_price" type="number" step="0.1"><span class="suf">万円</span></div>
             <div class="fld"><label for="i_guests">平均ゲスト数</label><input id="i_guests" type="number" step="0.1"><span class="suf">名</span></div>
             <div class="fld"><label for="i_margin">貢献利益率</label><input id="i_margin" type="number" step="1" min="0" max="100"><span class="suf">%</span></div>
@@ -188,15 +242,7 @@
           </fieldset>
 
           <fieldset>
-            <legend><span class="dot" style="background:var(--s1)"></span>① TASCUT｜媒体への一括入稿</legend>
-            <div class="fld"><label for="i_media">契約媒体数</label><input id="i_media" type="number" step="1" min="1"><span class="suf">媒体</span></div>
-            <div class="fld"><label for="i_hpm">1媒体あたり登録・更新</label><input id="i_hpm" type="number" step="0.5"><span class="suf">h/月</span></div>
-          </fieldset>
-
-          <fieldset>
             <legend><span class="dot" style="background:var(--s2)"></span>② FUWEL｜自社HP集客</legend>
-            <div class="fld"><label for="i_hpbase">エリア平均 自社HP予約</label><input id="i_hpbase" type="number" step="0.1"><span class="suf">件/月</span></div>
-            <div class="fld"><label for="i_uplift">予約数の増加</label><input id="i_uplift" type="number" step="5"><span class="suf">%</span></div>
             <div class="fld"><label for="i_visit2">予約 → 来館率</label><input id="i_visit2" type="number" step="5"><span class="suf">%</span></div>
             <div class="fld"><label for="i_close2">来館 → 成約率</label><input id="i_close2" type="number" step="5"><span class="suf">%</span></div>
           </fieldset>
@@ -207,7 +253,8 @@
             <div class="fld"><label for="i_prospect">結婚期待層の割合</label><input id="i_prospect" type="number" step="1"><span class="suf">%</span></div>
             <div class="fld"><label for="i_visit">DM → 来館率</label><input id="i_visit" type="number" step="0.1"><span class="suf">%</span></div>
             <div class="fld"><label for="i_close">来館 → 成約率</label><input id="i_close" type="number" step="1"><span class="suf">%</span></div>
-            <div class="fld"><label for="i_cannib">媒体重複の控除率</label><input id="i_cannib" type="number" step="5"><span class="suf">%</span></div>
+            <div class="fld"><label for="i_netnew">うち純増とみなす割合</label><input id="i_netnew" type="number" step="5"><span class="suf">%</span></div>
+            <div class="hint">DM経由で成約した組のうち、この施策がなければ獲得できなかったと考える割合。残りは「媒体経由でも取れたはず」として売上に数えません。50%なら半分を捨てる、控えめな置き方です。</div>
           </fieldset>
 
           <fieldset>
@@ -220,21 +267,24 @@
 
           <fieldset>
             <legend><span class="dot" style="background:var(--s5)"></span>⑤ FUWEL MICE｜宴会・法人</legend>
-            <div class="fld"><label for="i_banq">新規宴会成約</label><input id="i_banq" type="number" step="0.5"><span class="suf">件/月</span></div>
             <div class="fld"><label for="i_banqp">宴会の平均単価</label><input id="i_banqp" type="number" step="1"><span class="suf">万円</span></div>
           </fieldset>
 
           <fieldset>
             <legend><span class="dot" style="background:var(--ink-3)"></span>システム費用（1会場・月額）</legend>
-            <div class="fld"><label for="c_tascut">TASCUT</label><input id="c_tascut" type="number" step="1"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_fuwel">FUWEL</label><input id="c_fuwel" type="number" step="1"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_mice">FUWEL MICE</label><input id="c_mice" type="number" step="1"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_erp">SIRCLE 基幹</label><input id="c_erp" type="number" step="1"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_prep">SIRCLE 準備</label><input id="c_prep" type="number" step="1"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_ma">SIRCLE Marketing</label><input id="c_ma" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_tascut">TASCUT</label><input id="c_tascut" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_fuwel">FUWEL</label><input id="c_fuwel" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_mice">FUWEL MICE</label><input id="c_mice" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_erp">SIRCLE 基幹</label><input id="c_erp" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_prep">SIRCLE 準備</label><input id="c_prep" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_ma">SIRCLE Marketing</label><input id="c_ma" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="c_prepu">SIRCLE 準備 従量</label><input id="c_prepu" type="number" step="0.1"><span class="suf">万円/組</span></div>
             <div class="fld"><label for="c_inprint">INPRINT 従量</label><input id="c_inprint" type="number" step="0.1"><span class="suf">万円/組</span></div>
           </fieldset>
+        </div>
+        <div class="savebar">
+          <button class="btn sm" id="gsave" type="button">共通前提を保存</button>
+          <span class="msg" id="gmsg"></span>
         </div>
       </div>
     </aside>
@@ -242,36 +292,38 @@
     <main style="display:grid;gap:18px">
       <div class="cards">
         <section class="panel">
-          <h2>施策別の利益インパクトと、システム費用の壁</h2>
+          <h2 id="c1h">施策別の利益インパクトと、システム費用の壁</h2>
           <div style="padding:16px 18px 4px"><svg id="chart1" viewBox="0 0 560 284" role="img"
-            aria-label="施策別の年間利益インパクトと、年間システム費用の比較"></svg></div>
+            aria-label="選択中の会場における施策別の年間利益インパクトと、年間システム費用の比較"></svg></div>
           <p class="chartnote">縦の破線が全8システム分の年間費用。バーがこの線を越えた分が差引の利益になります。</p>
         </section>
 
         <section class="panel">
-          <h2>3シナリオの差引（1会場・年間）</h2>
-          <div style="padding:16px 18px 4px"><svg id="chart2" viewBox="0 0 560 240" role="img"
-            aria-label="控えめ・基準・拡大の3シナリオにおける年間差引利益"></svg></div>
-          <p class="chartnote">①②③の主要な前提を、控えめ／基準／拡大の3水準で振ったときの差引です。</p>
+          <h2>会場別の差引（全39会場・降順）</h2>
+          <div style="padding:16px 18px 4px"><svg id="chart2" viewBox="0 0 560 284" role="img"
+            aria-label="全39会場の年間差引を降順に並べた棒グラフ"></svg></div>
+          <p class="chartnote" id="c2note">選択中の会場を濃い色で示しています。</p>
         </section>
       </div>
 
       <section class="panel">
-        <h2>損益分岐｜システム費用を1施策だけで回収するには</h2>
-        <div class="bd">
-          <div class="be">
-            <div><div class="t">集客だけで回収するなら</div>
-              <div class="v" id="be1">–</div><div class="d" id="be1d">年間の追加成約</div></div>
-            <div><div class="t">工数削減だけで回収するなら</div>
-              <div class="v" id="be2">–</div><div class="d" id="be2d">年間の削減時間</div></div>
-            <div><div class="t">宴会だけで回収するなら</div>
-              <div class="v" id="be3">–</div><div class="d" id="be3d">年間の新規宴会成約</div></div>
-          </div>
+        <h2>全39会場の一覧｜行をクリックすると、その会場の前提を編集できます</h2>
+        <div id="dbwarn" class="dbwarn" hidden></div>
+        <div class="tbwrap vtable">
+          <table>
+            <thead><tr>
+              <th>会場</th><th>都道府県</th><th>媒体</th><th>施行組数</th>
+              <th>エリア平均</th><th>効果</th><th>費用</th><th>差引</th><th>状態</th>
+            </tr></thead>
+            <tbody id="vtb"></tbody>
+            <tfoot id="vtf"></tfoot>
+          </table>
         </div>
+        <p class="note">保存した値の保存先は、画面右上に表示しています。未保存の会場は初期値のまま合計に含めています。<br>「エリア平均」は、その会場が所在する都道府県のFUWEL導入会場における自社HP経由の月間予約数（フェア予約＋見学予約）の平均です。2025年9月〜2026年8月のRAWデータ、対象447会場から算出しています。</p>
       </section>
 
       <section class="panel">
-        <h2>明細｜1会場あたり・年間</h2>
+        <h2 id="dh">明細｜1会場あたり・年間</h2>
         <div class="tbwrap">
           <table>
             <thead><tr><th>項目</th><th>前提</th><th>売上インパクト</th><th>利益インパクト</th></tr></thead>
@@ -283,8 +335,8 @@
   </div>
 
   <footer>
-    <strong>前提の出典</strong>　試算対象は旧ノバレーゼの40会場です（旧エスクリの28会場は含みません）。婚礼会場数40会場は2026年2月の経営統合に関する報道発表資料、年間施行組数 約4,800組は全社計画8,061組の会場数按分、平均組単価371.0万円は旧ノバレーゼ直近実績、平均ゲスト数55.3名は2026年12月期 第1四半期決算説明資料。エリア平均の自社HP予約 月8.8件は、御社40会場が所在する29都道府県におけるFUWEL導入447会場の実測値（2025年9月〜2026年8月／会場数加重平均）。配信承諾率50%・来館→成約率50%は当社「SIRCLE MARKETING 概要書 ver2.1」の収益試算で用いている値。<br>
-    <strong>当社が仮定を置いている項目</strong>　1媒体あたりの登録・更新時間／自社HP予約の増加率／各工程の削減時間／引出物ECの粗利増／宴会の平均単価・成約件数／貢献利益率／媒体重複の控除率。いずれも左の入力欄で変更できます。<br>
+    <strong>前提の出典</strong>　試算対象は旧ノバレーゼの会場です（旧エスクリの28会場は含みません）。会場一覧は各ブランドの公式会場ページから作成した39会場で、統合発表資料の「40会場（開業予定含む）」とは1会場の差があります。平均組単価371.0万円は旧ノバレーゼ直近実績、平均ゲスト数55.3名は2026年12月期 第1四半期決算説明資料。1会場あたり年間施行組数の初期値120組は、全社計画8,061組を会場数比で按分した値です。エリア平均の自社HP予約は、FUWEL導入447会場の実測値（2025年9月〜2026年8月）を都道府県別に平均したもの。配信承諾率50%・来館→成約率50%は当社「SIRCLE MARKETING 概要書 ver2.1」の収益試算で用いている値。<br>
+    <strong>当社が仮定を置いている項目</strong>　1媒体あたりの登録・更新時間／自社HP予約の増加率／各工程の削減時間／引出物ECの粗利増／宴会の平均単価・成約件数／貢献利益率／純増とみなす割合。いずれも左の入力欄で変更できます。<br>
     <strong>ご注意</strong>　本シミュレーターは意思決定の材料としてご提供するものであり、成果を保証するものではありません。システム費用は定価ベースで、初期費用は含みません。複数会場でのご契約には別途プランをご用意しています。
     <span class="pill">株式会社トライスパイド</span>
   </footer>
@@ -292,46 +344,98 @@
 
 <script>
 (function(){
-  const D = {
-    venues:40, weddings:4800, price:371.0, guests:55.3, margin:50, wage:1800,
-    media:3, hpm:2.5,
-    hpbase:8.8, uplift:10, visit2:70, close2:50,
-    consent:50, prospect:15, visit:2, close:50, cannib:50,
-    hmtg:3, hmin:1.5, hseat:2, ec:15000,
-    banq:1, banqp:30,
+  /* ---------- 会場マスタ（n:会場名 p:都道府県 a:エリア平均 f:FUWEL会場数 m:媒体数） ---------- */
+  const VENUES = [
+  {"n":"アマンダンアイル","p":"福島県","a":4.7,"f":3,"m":3},
+  {"n":"アマンダンセイル","p":"千葉県","a":14.1,"f":10,"m":6},
+  {"n":"アマンダンブルー鎌倉","p":"神奈川県","a":13.6,"f":12,"m":6},
+  {"n":"アマンダンヒルズ","p":"神奈川県","a":13.6,"f":12,"m":6},
+  {"n":"アマンダンスカイ","p":"長野県","a":8.0,"f":11,"m":3},
+  {"n":"アマンダンヴィラ","p":"石川県","a":7.0,"f":5,"m":3},
+  {"n":"アマンダンピーク","p":"富山県","a":4.8,"f":5,"m":3},
+  {"n":"アマンダンテラス","p":"愛知県","a":16.5,"f":36,"m":6},
+  {"n":"アマンダンライズ","p":"静岡県","a":8.0,"f":15,"m":3},
+  {"n":"アマンダンカルム","p":"香川県","a":5.0,"f":6,"m":3},
+  {"n":"アマンダンブルー青島","p":"宮崎県","a":3.0,"f":3,"m":3},
+  {"n":"郡山モノリス","p":"福島県","a":4.7,"f":3,"m":3},
+  {"n":"高崎モノリス","p":"群馬県","a":5.8,"f":10,"m":3},
+  {"n":"宇都宮モノリス","p":"栃木県","a":6.4,"f":8,"m":3},
+  {"n":"横浜モノリス","p":"神奈川県","a":13.6,"f":12,"m":6},
+  {"n":"新潟モノリス","p":"新潟県","a":5.6,"f":10,"m":3},
+  {"n":"岐阜モノリス","p":"岐阜県","a":5.1,"f":10,"m":3},
+  {"n":"京都 北山モノリス","p":"京都府","a":12.0,"f":22,"m":6},
+  {"n":"姫路モノリス","p":"兵庫県","a":9.3,"f":22,"m":6},
+  {"n":"芦屋モノリス","p":"兵庫県","a":9.3,"f":22,"m":6},
+  {"n":"広島モノリス","p":"広島県","a":10.8,"f":9,"m":3},
+  {"n":"岡山モノリス","p":"岡山県","a":5.7,"f":9,"m":3},
+  {"n":"松山モノリス","p":"愛媛県","a":1.6,"f":1,"m":3},
+  {"n":"福岡 天神モノリス","p":"福岡県","a":13.3,"f":29,"m":6},
+  {"n":"熊本モノリス","p":"熊本県","a":10.8,"f":3,"m":3},
+  {"n":"大分モノリス","p":"大分県","a":4.1,"f":5,"m":3},
+  {"n":"フレアージュスウィート","p":"青森県","a":6.0,"f":1,"m":3},
+  {"n":"フレアージュ栄","p":"愛知県","a":16.5,"f":36,"m":6},
+  {"n":"フレアージュダリアンス","p":"滋賀県","a":5.0,"f":8,"m":3},
+  {"n":"フレアージュ桜坂","p":"福岡県","a":13.3,"f":29,"m":6},
+  {"n":"青龍荘","p":"宮城県","a":4.0,"f":3,"m":3},
+  {"n":"辻家庭園","p":"石川県","a":7.0,"f":5,"m":3},
+  {"n":"HOMAM 旧マッケンジー邸","p":"静岡県","a":8.0,"f":15,"m":3},
+  {"n":"旧桜宮公会堂","p":"大阪府","a":16.4,"f":32,"m":6},
+  {"n":"ジェームス邸","p":"兵庫県","a":9.3,"f":22,"m":6},
+  {"n":"三瀧荘","p":"広島県","a":10.8,"f":9,"m":3},
+  {"n":"葵庭園","p":"和歌山県","a":3.2,"f":1,"m":3},
+  {"n":"ザ・ロイヤルダイナスティ","p":"埼玉県","a":11.3,"f":14,"m":6},
+  {"n":"キラナリゾート沖縄","p":"沖縄県","a":15.9,"f":3,"m":3}
+  ];
+  VENUES.forEach((v,i)=>{ v.id = 'v' + String(i+1).padStart(2,'0'); });
+
+  /* ---------- 前提の初期値 ---------- */
+  const GDEF = {
+    price:371.0, guests:55.3, margin:50, wage:1800,
+    visit2:70, close2:50,
+    consent:50, prospect:15, visit:2, close:50, netnew:50,
+    hmtg:3, hmin:1.5, hseat:2, ec:15000, banqp:30,
     c_tascut:1, c_fuwel:5, c_mice:5, c_erp:20, c_prep:5, c_ma:5,
     c_prepu:1, c_inprint:1
   };
+  const VDEF = v => ({ weddings:120, media:v.m, hpm:2.5, hpbase:v.a, uplift:10, banq:1 });
+
+  /* 「控えめ／基準／拡大」は共通前提と会場前提の両方を振る */
   const SCEN = {
-    low: {media:3, hpm:2.5, uplift:10, prospect:15, visit:2, hmtg:3,   hmin:1.5, hseat:2,   ec:15000, banq:1},
-    mid: {media:5, hpm:4,   uplift:20, prospect:20, visit:3, hmtg:4,   hmin:2,   hseat:2.5, ec:20000, banq:2},
-    high:{media:6, hpm:6,   uplift:30, prospect:25, visit:5, hmtg:5,   hmin:2.5, hseat:3,   ec:25000, banq:3}
+    low: {g:{prospect:15, visit:2, hmtg:3,   hmin:1.5, hseat:2,   ec:15000}, v:{hpm:2.5, uplift:10, banq:1}},
+    mid: {g:{prospect:20, visit:3, hmtg:4,   hmin:2,   hseat:2.5, ec:20000}, v:{hpm:4,   uplift:20, banq:2}},
+    high:{g:{prospect:25, visit:5, hmtg:5,   hmin:2.5, hseat:3,   ec:25000}, v:{hpm:6,   uplift:30, banq:3}}
   };
-  const ids = Object.keys(D);
+
+  const GKEYS = Object.keys(GDEF);
+  const VKEYS = ['weddings','media','hpm','hpbase','uplift','banq'];
+
   const el = id => document.getElementById(id);
-  const inp = k => el(k.startsWith('c_') ? k : 'i_'+k);
-  const get = k => { const v = parseFloat(inp(k).value); return isFinite(v) ? v : D[k]; };
   const fmt = (v,d=0) => v.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
   const man = v => fmt(Math.round(v));
+  const oku = v => fmt(v/10000, 2);
 
-  function calc(over){
-    const g = {}; ids.forEach(k => g[k] = get(k));
-    if (over) Object.assign(g, over);
-    const w = g.weddings / g.venues;              // 1会場あたり年間施行数
-    const m = g.margin/100;
-    const perGuest = g.price / g.guests;
+  /* ---------- state ---------- */
+  let G = Object.assign({}, GDEF);                 // 共通前提（画面の値）
+  let VS = {};                                     // 会場ごとの前提（保存済み・未保存すべて）
+  let SAVED = {};                                  // db に保存済みの会場 id
+  let cur = 0;                                     // 選択中の会場 index
+  let db = null;
+  VENUES.forEach(v => { VS[v.id] = VDEF(v); });
+
+  /* ---------- 計算 ---------- */
+  function calc(vp, g){
+    const w = vp.weddings, m = g.margin/100;
 
     // ① TASCUT：媒体をまたぐ重複入稿の削減（人件費がそのまま残るため全額を利益）
-    const hrs1 = Math.max(g.media-1,0) * g.hpm * 12;
+    const hrs1 = Math.max(vp.media-1,0) * vp.hpm * 12;
     const val1 = hrs1 * g.wage / 10000;
     const rev1 = 0, prof1 = val1;
 
     // ② FUWEL：自社HP経由の予約増 → 来館 → 成約
-    const base2 = g.hpbase * 12;
-    const add2  = base2 * (g.uplift/100);
+    const base2 = vp.hpbase * 12;
+    const add2  = base2 * (vp.uplift/100);
     const deals2 = add2 * (g.visit2/100) * (g.close2/100);
-    const rev2 = deals2 * g.price;
-    const prof2 = rev2 * m;
+    const rev2 = deals2 * g.price, prof2 = rev2 * m;
 
     // ③ SIRCLE Marketing：参列ゲストへのDM
     const list = w * g.guests * (g.consent/100);
@@ -339,7 +443,7 @@
     const visits = prospects * (g.visit/100);
     const deals3 = visits * (g.close/100);
     const rev3g = deals3 * g.price;
-    const rev3 = rev3g * (1 - g.cannib/100);
+    const rev3 = rev3g * (g.netnew/100);
     const prof3 = rev3 * m;
 
     // ④ SIRCLE 準備：工数削減＋引出物EC粗利（いずれも全額を利益）
@@ -349,8 +453,7 @@
     const rev4 = val4h + val4e, prof4 = rev4;
 
     // ⑤ FUWEL MICE：宴会・法人
-    const rev5 = g.banq * 12 * g.banqp;
-    const prof5 = rev5 * m;
+    const rev5 = vp.banq * 12 * g.banqp, prof5 = rev5 * m;
 
     const cost = {
       TASCUT:g.c_tascut*12, FUWEL:g.c_fuwel*12, 'FUWEL MICE':g.c_mice*12,
@@ -358,18 +461,14 @@
       'SIRCLE Marketing':g.c_ma*12, INPRINT:g.c_inprint*w
     };
     const costTotal = Object.values(cost).reduce((a,b)=>a+b,0);
-
     const rev = rev1+rev2+rev3+rev4+rev5;
     const prof = prof1+prof2+prof3+prof4+prof5;
-    return {g,w,m,perGuest,
-            hrs1,val1,rev1,prof1,
-            base2,add2,deals2,rev2,prof2,
-            list,prospects,visits,deals3,rev3g,rev3,prof3,
-            hrs4,val4h,val4e,rev4,prof4,
-            rev5,prof5,
+    return {w,m,hrs1,val1,rev1,prof1,base2,add2,deals2,rev2,prof2,
+            deals3,rev3g,rev3,prof3,hrs4,val4h,val4e,rev4,prof4,rev5,prof5,
             cost,costTotal,rev,prof,net:prof-costTotal,
             roi:costTotal>0?(prof-costTotal)/costTotal*100:0};
   }
+  const calcAll = () => VENUES.map(v => ({v, r:calc(VS[v.id], G)}));
 
   /* ---------- charts ---------- */
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -388,7 +487,6 @@
     const max=Math.max(r.costTotal,...rows.map(d=>d[1]))*1.18||1;
     const x=v=>L+(W-L-R)*v/max;
     const bh=30, gap=14;
-    // grid
     for(let i=0;i<=4;i++){const v=max*i/4;
       mk('line',{x1:x(v),y1:T,x2:x(v),y2:H-B,stroke:css('--line'),'stroke-width':1},s);
       mk('text',{x:x(v),y:H-B+16,'text-anchor':'middle','font-size':10,
@@ -406,7 +504,6 @@
         'font-size':12,'font-weight':600,fill:inside?'#fff':css('--ink'),
         'font-family':'Jost, sans-serif'},s).textContent=man(d[1])+' 万円';
     });
-    // cost line
     const cx=x(r.costTotal);
     mk('line',{x1:cx,y1:T-8,x2:cx,y2:H-B+4,stroke:css('--neg'),'stroke-width':2,
       'stroke-dasharray':'5 4'},s);
@@ -414,54 +511,88 @@
     mk('text',{x:lblRight?cx+7:cx-7,y:T-1,'text-anchor':lblRight?'start':'end',
       'font-size':10.5,fill:css('--neg'),'font-weight':600},s)
       .textContent='年間システム費用 '+man(r.costTotal)+' 万円';
-    mk('text',{x:0,y:H-4,'font-size':10,fill:css('--ink-3')},s).textContent='単位：万円／年（1会場あたり）';
+    mk('text',{x:0,y:H-4,'font-size':10,fill:css('--ink-3')},s).textContent='単位：万円／年（この会場）';
   }
 
-  function chart2(r){
+  function chart2(all){
     const s=el('chart2'); s.innerHTML='';
-    const W=560,H=240,L=42,R=16,T=28,B=44;
-    const res=['low','mid','high'].map(k=>{
-      const o=Object.assign({},SCEN[k]); return calc(o).net;});
-    const labs=['控えめ','基準','拡大'];
-    const vals=res;
-    const maxV=Math.max(0,...vals), minV=Math.min(0,...vals);
-    const span=(maxV-minV)||1, pad=span*0.15;
-    const hi=maxV+pad, lo=minV-((minV<0)?pad:0);
+    const W=560,H=284,L=40,R=14,T=26,B=46;
+    const sorted=[...all].sort((a,b)=>b.r.net-a.r.net);
+    const vals=sorted.map(d=>d.r.net);
+    const hi=Math.max(0,...vals)*1.12||1, lo=Math.min(0,...vals)*1.12;
     const y=v=>T+(H-T-B)*(hi-v)/((hi-lo)||1);
-    const bw=74, step=(W-L-R)/3;
-    // zero line
+    const n=sorted.length, span=(W-L-R)/n, bw=Math.max(span-2.2,2);
     mk('line',{x1:L,y1:y(0),x2:W-R,y2:y(0),stroke:css('--line-2'),'stroke-width':1},s);
     mk('text',{x:0,y:y(0)+4,'font-size':10,fill:css('--ink-3'),'font-family':'Jost, sans-serif'},s).textContent='0';
-    vals.forEach((v,i)=>{
-      const cx=L+step*i+step/2;
-      const top=Math.min(y(v),y(0)), h=Math.abs(y(v)-y(0));
-      const col=v>=0?css('--pos'):css('--neg');
+    sorted.forEach((d,i)=>{
+      const cx=L+span*i+span/2;
+      const top=Math.min(y(d.r.net),y(0)), h=Math.abs(y(d.r.net)-y(0));
+      const isSel = d.v.id===VENUES[cur].id;
+      const col = d.r.net>=0 ? (isSel?css('--brand-deep'):css('--pos')) : css('--neg');
       const g=mk('g',{},s);
-      mk('rect',{x:cx-bw/2,y:top,width:bw,height:Math.max(h,2),rx:4,fill:col},g);
-      mk('title',{},g).textContent=labs[i]+'シナリオ：差引 '+man(v)+' 万円／会場・年';
-      mk('text',{x:cx,y:v>=0?top-9:top+h+18,'text-anchor':'middle','font-size':14,
-        'font-weight':600,fill:col,'font-family':'Jost, sans-serif'},s)
-        .textContent=(v>=0?'＋':'▲')+man(Math.abs(v));
-      mk('text',{x:cx,y:H-18,'text-anchor':'middle','font-size':11.5,fill:css('--ink-2')},s)
-        .textContent=labs[i];
+      mk('rect',{x:cx-bw/2,y:top,width:bw,height:Math.max(h,2),rx:1.5,fill:col,
+        opacity:isSel?1:.82},g);
+      mk('title',{},g).textContent=d.v.n+'（'+d.v.p+'）：差引 '+man(d.r.net)+' 万円／年';
+      if(isSel){
+        const an = cx > W-80 ? 'end' : (cx < 80 ? 'start' : 'middle');
+        mk('text',{x:Math.min(Math.max(cx,L),W-R),y:Math.max(top-8,12),'text-anchor':an,
+          'font-size':10,'font-weight':600,fill:css('--brand-deep')},s).textContent=d.v.n;
+      }
     });
-    mk('text',{x:0,y:H-2,'font-size':10,fill:css('--ink-3')},s).textContent='単位：万円／年（1会場あたり・システム費用控除後）';
+    const tot=vals.reduce((a,b)=>a+b,0);
+    const med=vals.slice().sort((a,b)=>a-b)[Math.floor(n/2)];
+    mk('text',{x:0,y:H-22,'font-size':10,fill:css('--ink-2')},s)
+      .textContent='最大 '+man(vals[0])+' ／ 中央 '+man(med)+' ／ 最小 '+man(vals[n-1])+' 万円';
+    mk('text',{x:0,y:H-6,'font-size':10,fill:css('--ink-3')},s)
+      .textContent='39会場 合計 '+oku(tot)+' 億円／年（単位：万円／年・会場ごとの差引）';
   }
 
-  function table(r){
+  /* ---------- tables ---------- */
+  function venueTable(all){
+    let h='';
+    all.forEach((d,i)=>{
+      const sel = i===cur ? ' sel' : '';
+      const on  = SAVED[d.v.id] ? '<span class="badge on">保存済み</span>'
+                                : '<span class="badge">初期値</span>';
+      const p = VS[d.v.id];
+      h+='<tr class="vrow'+sel+'" data-i="'+i+'">'
+        +'<td>'+d.v.n+'</td>'
+        +'<td style="color:var(--ink-3)">'+d.v.p+'</td>'
+        +'<td class="n">'+p.media+'</td>'
+        +'<td class="n">'+fmt(p.weddings)+'</td>'
+        +'<td class="n">'+fmt(p.hpbase,1)+'</td>'
+        +'<td class="n">'+man(d.r.prof)+'</td>'
+        +'<td class="n" style="color:var(--neg)">▲'+man(d.r.costTotal)+'</td>'
+        +'<td class="n" style="font-weight:700;color:'+(d.r.net>=0?'var(--pos)':'var(--neg)')+'">'
+        +(d.r.net>=0?'＋':'▲')+man(Math.abs(d.r.net))+'</td>'
+        +'<td>'+on+'</td></tr>';
+    });
+    el('vtb').innerHTML=h;
+    const T={prof:0,cost:0,net:0,w:0};
+    all.forEach(d=>{T.prof+=d.r.prof;T.cost+=d.r.costTotal;T.net+=d.r.net;T.w+=VS[d.v.id].weddings;});
+    el('vtf').innerHTML='<tr class="sum"><td>合計（39会場）</td><td></td><td></td>'
+      +'<td class="n">'+fmt(T.w)+'</td><td></td>'
+      +'<td class="n">'+man(T.prof)+'</td>'
+      +'<td class="n" style="color:var(--neg)">▲'+man(T.cost)+'</td>'
+      +'<td class="n" style="color:'+(T.net>=0?'var(--pos)':'var(--neg)')+'">'
+      +(T.net>=0?'＋':'▲')+man(Math.abs(T.net))+'</td><td></td></tr>';
+    el('vtb').querySelectorAll('tr.vrow').forEach(tr=>{
+      tr.addEventListener('click',()=>{ cur=+tr.dataset.i; el('vsel').value=String(cur); loadVenue(); });
+    });
+    return T;
+  }
+
+  function detailTable(r){
     const dot=v=>'<span class="tagdot" style="background:var(--'+v+')"></span>';
+    const p=VS[VENUES[cur].id];
     const rows=[
-      [dot('s1')+'① TASCUT｜重複入稿の削減',
-        fmt(r.g.media,0)+'媒体 / '+fmt(r.hrs1,0)+' h', null, r.prof1],
-      [dot('s2')+'② FUWEL｜自社HP経由の新規成約',
-        fmt(r.deals2,1)+' 組', r.rev2, r.prof2],
-      [dot('s3')+'③ ゲストメルマガ経由の新規成約',
-        fmt(r.deals3,1)+' 組', r.rev3, r.prof3],
+      [dot('s1')+'① TASCUT｜重複入稿の削減', fmt(p.media,0)+'媒体 / '+fmt(r.hrs1,0)+' h', null, r.prof1],
+      [dot('s2')+'② FUWEL｜自社HP経由の新規成約', fmt(r.deals2,1)+' 組', r.rev2, r.prof2],
+      [dot('s3')+'③ ゲストメルマガ経由の新規成約', fmt(r.deals3,1)+' 組', r.rev3, r.prof3],
       [dot('s4')+'④ SIRCLE 準備 小計','', r.rev4, r.prof4],
-      ['\u3000└ 工数削減','▲'+fmt(r.g.hmtg+r.g.hmin+r.g.hseat,1)+' h/組', r.val4h, r.val4h],
-      ['\u3000└ 引出物ECの粗利増','+'+fmt(r.g.ec/10000,1)+' 万円/組', r.val4e, r.val4e],
-      [dot('s5')+'⑤ 宴会・MICEの新規成約',
-        fmt(r.g.banq*12,0)+' 件/年', r.rev5, r.prof5]
+      ['　└ 工数削減','▲'+fmt(G.hmtg+G.hmin+G.hseat,1)+' h/組', r.val4h, r.val4h],
+      ['　└ 引出物ECの粗利増','+'+fmt(G.ec/10000,1)+' 万円/組', r.val4e, r.val4e],
+      [dot('s5')+'⑤ 宴会・MICEの新規成約', fmt(p.banq*12,0)+' 件/年', r.rev5, r.prof5]
     ];
     let h='';
     rows.forEach(x=>{h+='<tr><td>'+x[0]+'</td><td class="n">'+x[1]+'</td><td class="n">'+
@@ -469,7 +600,7 @@
     h+='<tr class="sum"><td>効果 合計</td><td></td><td class="n">'+man(r.rev)+
        '</td><td class="n">'+man(r.prof)+'</td></tr>';
     Object.entries(r.cost).forEach(([k,v])=>{
-      h+='<tr class="cost"><td>\u3000'+k+'</td><td></td><td class="n">–</td><td class="n">▲'+man(v)+'</td></tr>';
+      h+='<tr class="cost"><td>　'+k+'</td><td></td><td class="n">–</td><td class="n">▲'+man(v)+'</td></tr>';
     });
     h+='<tr class="sum cost"><td>システム費用 合計</td><td></td><td class="n">–</td><td class="n">▲'+
        man(r.costTotal)+'</td></tr>';
@@ -478,52 +609,201 @@
     el('tb').innerHTML=h;
   }
 
+  /* ---------- render ---------- */
   function render(){
-    const r=calc();
-    el('k-rev').innerHTML=man(r.rev)+'<span class="unit">万円</span>';
-    el('k-prof').innerHTML=man(r.prof)+'<span class="unit">万円</span>';
-    el('k-cost').innerHTML=man(r.costTotal)+'<span class="unit">万円</span>';
-    el('k-net').innerHTML=(r.net>=0?'＋':'▲')+man(Math.abs(r.net))+'<span class="unit">万円</span>';
-    el('k-netfoot').textContent=r.net>=0?'利益 − 費用':'費用が利益を上回っています';
-    el('k-roi').innerHTML=fmt(r.roi,0)+'<span class="unit">%</span>';
-    const total=r.net*r.g.venues;
-    el('k-total').innerHTML=(total>=0?'＋':'▲')+fmt(Math.abs(total)/10000,2)+'<span class="unit">億円</span>';
-    el('k-totalfoot').textContent=fmt(r.g.venues,0)+'会場 × '+man(r.net)+'万円';
+    const v = VENUES[cur];
+    const all = calcAll();
+    const r = all[cur].r;
+    const T = venueTable(all);
 
-    // breakeven
-    const perDeal=r.g.price*r.m;
-    el('be1').textContent=fmt(r.costTotal/perDeal,1)+' 組';
-    el('be1d').textContent='年間の追加成約（②＋③の試算合計は '+fmt(r.deals2+r.deals3,1)+' 組）';
-    const hrsNeed=r.costTotal*10000/r.g.wage;
-    el('be2').textContent=fmt(hrsNeed,0)+' 時間';
-    el('be2d').textContent='年間の削減時間（①＋④の試算合計は '+fmt(r.hrs1+r.hrs4,0)+' 時間）';
-    const perBanq=r.g.banqp*r.m;
-    el('be3').textContent=fmt(r.costTotal/perBanq,1)+' 件';
-    el('be3d').textContent='年間の新規宴会成約（月 '+fmt(r.costTotal/perBanq/12,1)+' 件）';
+    el('k-all').innerHTML=(T.net>=0?'＋':'▲')+oku(Math.abs(T.net))+'<span class="unit">億円</span>';
+    el('k-allfoot').textContent='39会場 × 平均 '+man(T.net/39)+'万円';
+    el('k-allprof').innerHTML=oku(T.prof)+'<span class="unit">億円</span>';
+    el('k-allcost').innerHTML=oku(T.cost)+'<span class="unit">億円</span>';
+    el('k-allroi').innerHTML=fmt(T.cost>0?T.net/T.cost*100:0,0)+'<span class="unit">%</span>';
+    el('k-onelab').textContent=v.n;
+    el('k-one').innerHTML=(r.net>=0?'＋':'▲')+man(Math.abs(r.net))+'<span class="unit">万円</span>';
+    el('k-onefoot').textContent='ROI '+fmt(r.roi,0)+'%／'+v.p;
+    const ns=Object.keys(SAVED).length;
+    el('k-saved').innerHTML=fmt(ns)+'<span class="unit">/ 39 会場</span>';
 
-    chart1(r); chart2(r); table(r);
+    el('vh').textContent='この会場の前提｜'+v.n;
+    el('vlegend').textContent=v.n+'（'+v.p+'）';
+    el('v_area_hint').textContent=v.p+'のFUWEL導入'+v.f+'会場の実測平均は 月'+fmt(v.a,1)+'件です。';
+    el('c1h').textContent='施策別の利益インパクト｜'+v.n;
+    el('dh').textContent='明細｜'+v.n+'・年間';
+
+    chart1(r); chart2(all); detailTable(r);
   }
 
-  function setAll(o){ ids.forEach(k=>{ if(k in o) inp(k).value=o[k]; }); }
-  function applyScenario(name){
-    setAll(SCEN[name]);
-    ['low','mid','high'].forEach(k=>{
-      el('sc-'+k).setAttribute('aria-pressed', String(k===name));
-    });
+  /* ---------- form <-> state ---------- */
+  function loadVenue(){
+    const p = VS[VENUES[cur].id];
+    VKEYS.forEach(k => el('v_'+k).value = p[k]);
+    el('vmsg').textContent = SAVED[VENUES[cur].id] ? '保存済みの値を読み込みました' : '初期値を表示しています';
     render();
   }
-  function clearScenario(){
-    ['low','mid','high'].forEach(k=>el('sc-'+k).setAttribute('aria-pressed','false'));
+  function readVenue(){
+    const p = VS[VENUES[cur].id];
+    VKEYS.forEach(k => { const n=parseFloat(el('v_'+k).value); if(isFinite(n)) p[k]=n; });
+  }
+  function loadGlobal(){ GKEYS.forEach(k => el(k.startsWith('c_')?k:'i_'+k).value = G[k]); }
+  function readGlobal(){
+    GKEYS.forEach(k => { const n=parseFloat(el(k.startsWith('c_')?k:'i_'+k).value); if(isFinite(n)) G[k]=n; });
   }
 
-  setAll(D);
-  ids.forEach(k=>{ inp(k).addEventListener('input',()=>{clearScenario();render();}); });
-  el('sc-low').addEventListener('click',()=>applyScenario('low'));
-  el('sc-mid').addEventListener('click',()=>applyScenario('mid'));
-  el('sc-high').addEventListener('click',()=>applyScenario('high'));
-  el('reset').addEventListener('click',()=>{setAll(D);applyScenario('low');});
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
-  applyScenario('low');
+  /* ---------- 保存先（claude.ai の共有DB → ブラウザ保存 → メモリのみ） ---------- */
+  const LSKEY = 'otp-sim-v1';
+  let MODE = 'memory';          // 'db' | 'local' | 'memory'
+
+  function flash(id,msg){ el(id).textContent=msg; setTimeout(()=>{ if(el(id).textContent===msg) el(id).textContent=''; },3200); }
+  function lsRead(){ try { return JSON.parse(localStorage.getItem(LSKEY) || 'null'); } catch(e){ return null; } }
+  function lsWrite(o){ try { localStorage.setItem(LSKEY, JSON.stringify(o)); return true; } catch(e){ return false; } }
+  function lsSnapshot(){
+    const v = {}; Object.keys(SAVED).forEach(id => { v[id] = VS[id]; });
+    return {g:G, v:v, updatedAt:new Date().toISOString()};
+  }
+
+  function setMode(m){
+    MODE = m;
+    const chip = el('storemode');
+    if(m==='db'){
+      chip.textContent = '保存先：共有データベース';
+      chip.title = 'このページを開けるメンバー全員に共有されます';
+    } else if(m==='local'){
+      chip.textContent = '保存先：このブラウザ';
+      chip.title = 'この端末のブラウザに保存されます。他の方の画面には反映されません';
+    } else {
+      chip.textContent = '保存先：なし';
+      chip.title = 'このブラウザでは保存できません';
+      el('dbwarn').hidden=false;
+      el('dbwarn').textContent='このブラウザでは保存できません（プライベートウィンドウなどでサイトデータが無効になっている可能性があります）。入力した値はこの画面を閉じるまで保持されます。';
+    }
+  }
+
+  async function initStore(){
+    let d = null;
+    try { d = (typeof claude !== 'undefined' && claude.use) ? await claude.use('db') : null; }
+    catch(e){ d = null; }
+
+    if(d){
+      db = d;
+      try {
+        const g = await db.doc('config/global').get();
+        if(g.exists){
+          const gd = g.data() || {};
+          GKEYS.forEach(k => { if(typeof gd[k]==='number') G[k]=gd[k]; });
+          loadGlobal();
+        }
+      } catch(e){}
+      try {
+        const snap = await db.collection('venues').get();
+        (snap.docs||[]).forEach(doc => {
+          const vd = doc.data() || {};
+          if(!VS[doc.id]) return;
+          VKEYS.forEach(k => { if(typeof vd[k]==='number') VS[doc.id][k]=vd[k]; });
+          SAVED[doc.id]=true;
+        });
+      } catch(e){}
+      setMode('db'); loadVenue(); return;
+    }
+
+    // claude.ai の外（GitHub Pages などに置いた場合）はブラウザに保存する
+    let ok = false;
+    try { localStorage.setItem(LSKEY+'-probe','1'); localStorage.removeItem(LSKEY+'-probe'); ok = true; } catch(e){ ok = false; }
+    if(!ok){ setMode('memory'); loadVenue(); return; }
+
+    const saved = lsRead();
+    if(saved){
+      if(saved.g) GKEYS.forEach(k => { if(typeof saved.g[k]==='number') G[k]=saved.g[k]; });
+      if(saved.v) Object.keys(saved.v).forEach(id => {
+        if(!VS[id]) return;
+        VKEYS.forEach(k => { if(typeof saved.v[id][k]==='number') VS[id][k]=saved.v[id][k]; });
+        SAVED[id]=true;
+      });
+      loadGlobal();
+    }
+    setMode('local'); loadVenue();
+  }
+
+  el('vsave').addEventListener('click', async ()=>{
+    readVenue();
+    const id = VENUES[cur].id, nm = VENUES[cur].n;
+    if(MODE==='memory'){ SAVED[id]=true; flash('vmsg','このブラウザでは保存できないため、画面内のみ反映しました'); render(); return; }
+    el('vsave').disabled=true;
+    if(MODE==='db'){
+      try {
+        const p = VS[id];
+        const payload = {}; VKEYS.forEach(k=>payload[k]=p[k]);
+        payload.name = nm; payload.pref = VENUES[cur].p;
+        payload.updatedAt = new Date().toISOString();
+        await db.doc('venues/'+id).set(payload);
+        SAVED[id]=true;
+        flash('vmsg', nm+' を保存しました');
+      } catch(e){ flash('vmsg','保存できませんでした'); }
+    } else {
+      SAVED[id]=true;
+      flash('vmsg', lsWrite(lsSnapshot()) ? nm+' をこのブラウザに保存しました' : '保存できませんでした');
+    }
+    el('vsave').disabled=false;
+    render();
+  });
+
+  el('vclear').addEventListener('click', async ()=>{
+    const id = VENUES[cur].id;
+    VS[id] = VDEF(VENUES[cur]);
+    if(MODE==='db' && SAVED[id]){ try { await db.doc('venues/'+id).delete(); } catch(e){} }
+    delete SAVED[id];
+    if(MODE==='local') lsWrite(lsSnapshot());
+    loadVenue();
+    flash('vmsg','この会場を初期値に戻しました');
+  });
+
+  el('gsave').addEventListener('click', async ()=>{
+    readGlobal();
+    if(MODE==='memory'){ flash('gmsg','このブラウザでは保存できないため、画面内のみ反映しました'); render(); return; }
+    el('gsave').disabled=true;
+    if(MODE==='db'){
+      try {
+        await db.doc('config/global').set(Object.assign({updatedAt:new Date().toISOString()}, G));
+        flash('gmsg','共通前提を保存しました');
+      } catch(e){ flash('gmsg','保存できませんでした'); }
+    } else {
+      flash('gmsg', lsWrite(lsSnapshot()) ? '共通前提をこのブラウザに保存しました' : '保存できませんでした');
+    }
+    el('gsave').disabled=false;
+    render();
+  });
+
+  /* ---------- scenarios ---------- */
+  function applyScenario(name){
+    const s=SCEN[name];
+    Object.assign(G, s.g);
+    VENUES.forEach(v => Object.assign(VS[v.id], s.v));
+    loadGlobal(); loadVenue();
+    ['low','mid','high'].forEach(k => el('sc-'+k).setAttribute('aria-pressed', String(k===name)));
+    el('vmsg').textContent='「'+({low:'控えめ',mid:'基準',high:'拡大'})[name]+'」を全会場に適用しました（未保存）';
+  }
+  function clearScenario(){ ['low','mid','high'].forEach(k=>el('sc-'+k).setAttribute('aria-pressed','false')); }
+
+  /* ---------- wiring ---------- */
+  el('vsel').innerHTML = VENUES.map((v,i)=>'<option value="'+i+'">'+v.n+'（'+v.p+'）</option>').join('');
+  el('vsel').addEventListener('change', ()=>{ cur=+el('vsel').value; loadVenue(); });
+  VKEYS.forEach(k => el('v_'+k).addEventListener('input', ()=>{ clearScenario(); readVenue(); render(); }));
+  GKEYS.forEach(k => el(k.startsWith('c_')?k:'i_'+k)
+    .addEventListener('input', ()=>{ clearScenario(); readGlobal(); render(); }));
+  el('reset').addEventListener('click', ()=>{
+    G=Object.assign({},GDEF);
+    VENUES.forEach(v => { VS[v.id]=VDEF(v); });
+    Object.keys(SAVED).forEach(k => delete SAVED[k]);
+    if(MODE==='local'){ try { localStorage.removeItem(LSKEY); } catch(e){} }
+    loadGlobal(); applyScenario('low');
+  });
+  ['low','mid','high'].forEach(k => el('sc-'+k).addEventListener('click', ()=>applyScenario(k)));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+
+  loadGlobal(); loadVenue();
+  initStore();
 })();
 </script>
 
