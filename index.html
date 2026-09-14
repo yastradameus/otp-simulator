@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>婚礼DX 投資対効果シミュレーター</title>
+<title>トライスパイド導入シミュレーター</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap">
 <style>
   :root{
@@ -171,8 +171,8 @@
   <div class="hd">
     <div>
       <div class="mark">TRICE PIED</div>
-      <h1>婚礼DX 投資対効果シミュレーター</h1>
-      <div class="sub">株式会社オンザページ 御中｜会場ごとに前提を入れて保存すると、全39会場の合計が積み上がります</div>
+      <h1>ON THE PAGE｜トライスパイド システム導入シミュレーター</h1>
+      <div class="sub">いま払っている費用と入れ替えたときに、来館がどれだけ増え、コストがどれだけ動くかを会場ごとに試算します</div>
     </div>
     <div class="spacer"></div>
     <div class="vpick">
@@ -193,13 +193,13 @@
 
   <div class="kpis">
     <div class="kpi hero"><div class="lab">全39会場 合計 差引</div>
-      <div class="val num" id="k-all">–</div><div class="foot" id="k-allfoot">年間・システム費用控除後</div></div>
-    <div class="kpi"><div class="lab">全39会場 利益インパクト</div>
+      <div class="val num" id="k-all">–</div><div class="foot" id="k-allfoot">増える利益 − 増えるコスト</div></div>
+    <div class="kpi"><div class="lab">増える来館</div>
+      <div class="val num" id="k-visits">–</div><div class="foot">年間・全39会場</div></div>
+    <div class="kpi"><div class="lab">増える利益</div>
       <div class="val num" id="k-allprof">–</div><div class="foot">年間・貢献利益率を適用後</div></div>
-    <div class="kpi"><div class="lab">全39会場 システム費用</div>
-      <div class="val num" id="k-allcost">–</div><div class="foot">年間・全8システム</div></div>
-    <div class="kpi"><div class="lab">全社 ROI</div>
-      <div class="val num" id="k-allroi">–</div><div class="foot">合計差引 ÷ 合計費用</div></div>
+    <div class="kpi"><div class="lab" id="k-costlab">増えるコスト</div>
+      <div class="val num" id="k-allcost">–</div><div class="foot" id="k-costfoot">トライスパイド費用 − いまのシステム費用</div></div>
     <div class="kpi"><div class="lab" id="k-onelab">選択中の会場 差引</div>
       <div class="val num" id="k-one">–</div><div class="foot" id="k-onefoot">年間・1会場</div></div>
     <div class="kpi"><div class="lab">保存済みの会場</div>
@@ -271,10 +271,34 @@
           </fieldset>
 
           <fieldset>
-            <legend><span class="dot" style="background:var(--ink-3)"></span>システム費用（1会場・月額）</legend>
-            <div class="fld"><label for="c_tascut">TASCUT</label><input id="c_tascut" type="number" step="0.5"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_fuwel">FUWEL</label><input id="c_fuwel" type="number" step="0.5"><span class="suf">万円</span></div>
-            <div class="fld"><label for="c_mice">FUWEL MICE</label><input id="c_mice" type="number" step="0.5"><span class="suf">万円</span></div>
+            <legend><span class="dot" style="background:var(--neg)"></span>いまの媒体掲載費（1会場・月額）</legend>
+            <div class="fld"><label for="m_zexy">ゼクシィ</label><input id="m_zexy" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="m_minna">みんなのウェディング</label><input id="m_minna" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="m_wpark">ウェディングパーク</label><input id="m_wpark" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="m_hana_unit">hanayume 送客単価</label><input id="m_hana_unit" type="number" step="0.5"><span class="suf">万円/人</span></div>
+            <div class="fld"><label for="m_hana_cnt">hanayume 月間送客数</label><input id="m_hana_cnt" type="number" step="1"><span class="suf">人</span></div>
+            <div class="hint" id="hana_hint">hanayumeは成果報酬型。単価 × 送客数 が月額になります。月額掲載で契約している場合は、単価に月額を入れて送客数を1にしてください。</div>
+            <div class="fld"><label for="m_mynavi">マイナビウエディング</label><input id="m_mynavi" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="m_tokihana">トキハナ</label><input id="m_tokihana" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="fld"><label for="m_wnews">ウェディングニュース</label><input id="m_wnews" type="number" step="1"><span class="suf">万円</span></div>
+            <div class="hint">会場ごとの「契約媒体数」に応じて、上から順に計上します。3媒体の会場ならゼクシィ・みんなのW・ウェディングパークまで。媒体掲載費はトライスパイド導入では減りません。規模を並べて見るための欄です。</div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--ink-3)"></span>いまのシステム費用（1会場・月額）</legend>
+            <div class="fld"><label for="x_media">媒体一括管理</label><input id="x_media" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="x_cms">自社HP CMS</label><input id="x_cms" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="x_erp">基幹システム</label><input id="x_erp" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="x_prep">準備システム</label><input id="x_prep" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="x_ma">マーケティングオートメーション</label><input id="x_ma" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="hint">いまお使いのシステムの費用。トライスパイドに置き換わる領域なので、この分だけ導入後のコストから差し引きます。使っていない領域は0のままで構いません。</div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="dot" style="background:var(--brand)"></span>トライスパイドの費用（1会場・月額）</legend>
+            <div class="fld"><label for="c_tascut">TASCUT｜媒体一括管理</label><input id="c_tascut" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_fuwel">FUWEL｜自社HP CMS</label><input id="c_fuwel" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="c_mice">FUWEL MICE｜宴会</label><input id="c_mice" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="c_erp">SIRCLE 基幹</label><input id="c_erp" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="c_prep">SIRCLE 準備</label><input id="c_prep" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="c_ma">SIRCLE Marketing</label><input id="c_ma" type="number" step="0.5"><span class="suf">万円</span></div>
@@ -290,12 +314,23 @@
     </aside>
 
     <main style="display:grid;gap:18px">
+      <section class="panel">
+        <h2>いまと、導入後｜全39会場・年間</h2>
+        <div class="tbwrap">
+          <table>
+            <thead><tr><th>項目</th><th>いま</th><th>導入後</th><th>差額</th></tr></thead>
+            <tbody id="cmp"></tbody>
+          </table>
+        </div>
+        <p class="note" id="cmpnote">–</p>
+      </section>
+
       <div class="cards">
         <section class="panel">
           <h2 id="c1h">施策別の利益インパクトと、システム費用の壁</h2>
           <div style="padding:16px 18px 4px"><svg id="chart1" viewBox="0 0 560 284" role="img"
             aria-label="選択中の会場における施策別の年間利益インパクトと、年間システム費用の比較"></svg></div>
-          <p class="chartnote">縦の破線が全8システム分の年間費用。バーがこの線を越えた分が差引の利益になります。</p>
+          <p class="chartnote">縦の破線が、いまのシステム費用を差し引いたあとの増えるコスト。バーがこの線を越えた分が差引の利益になります。</p>
         </section>
 
         <section class="panel">
@@ -313,7 +348,7 @@
           <table>
             <thead><tr>
               <th>会場</th><th>都道府県</th><th>媒体</th><th>施行組数</th>
-              <th>エリア平均</th><th>効果</th><th>費用</th><th>差引</th><th>状態</th>
+              <th>来館増</th><th>増える利益</th><th>増えるコスト</th><th>差引</th><th>状態</th>
             </tr></thead>
             <tbody id="vtb"></tbody>
             <tfoot id="vtf"></tfoot>
@@ -394,6 +429,9 @@
     visit2:70, close2:50,
     consent:50, prospect:15, visit:2, close:50, netnew:50,
     hmtg:3, hmin:1.5, hseat:2, ec:15000, banqp:30,
+    m_zexy:0, m_minna:0, m_wpark:0, m_hana_unit:7, m_hana_cnt:0,
+    m_mynavi:0, m_tokihana:0, m_wnews:0,
+    x_media:0, x_cms:0, x_erp:0, x_prep:0, x_ma:0,
     c_tascut:1, c_fuwel:5, c_mice:5, c_erp:20, c_prep:5, c_ma:5,
     c_prepu:1, c_inprint:1
   };
@@ -410,6 +448,8 @@
   const VKEYS = ['weddings','media','hpm','hpbase','uplift','banq'];
 
   const el = id => document.getElementById(id);
+  // 共通前提の入力欄。c_ / m_ / x_ はIDそのまま、それ以外は i_ を前置する
+  const inp = k => el((k.startsWith('c_')||k.startsWith('m_')||k.startsWith('x_')) ? k : 'i_'+k);
   const fmt = (v,d=0) => v.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
   const man = v => fmt(Math.round(v));
   const oku = v => fmt(v/10000, 2);
@@ -461,12 +501,26 @@
       'SIRCLE Marketing':g.c_ma*12, INPRINT:g.c_inprint*w
     };
     const costTotal = Object.values(cost).reduce((a,b)=>a+b,0);
+
+    // いまの費用：媒体掲載費は契約媒体数のぶんだけ上から計上する
+    const mlist = [g.m_zexy, g.m_minna, g.m_wpark, g.m_hana_unit * g.m_hana_cnt,
+                   g.m_mynavi, g.m_tokihana, g.m_wnews];
+    const nMedia = Math.max(0, Math.min(Math.round(vp.media), mlist.length));
+    const mediaCost = mlist.slice(0, nMedia).reduce((a,b)=>a+b,0) * 12;
+    const curSys = (g.x_media + g.x_cms + g.x_erp + g.x_prep + g.x_ma) * 12;
+    const netCost = costTotal - curSys;          // 純増コスト（マイナスなら費用が減る）
+
+    // 来館の増加：FUWEL経由 ＋ ゲストメルマガ経由
+    const visitsUp = add2 * (g.visit2/100) + visits;
+    const dealsUp = deals2 + deals3;
+
     const rev = rev1+rev2+rev3+rev4+rev5;
     const prof = prof1+prof2+prof3+prof4+prof5;
     return {w,m,hrs1,val1,rev1,prof1,base2,add2,deals2,rev2,prof2,
-            deals3,rev3g,rev3,prof3,hrs4,val4h,val4e,rev4,prof4,rev5,prof5,
-            cost,costTotal,rev,prof,net:prof-costTotal,
-            roi:costTotal>0?(prof-costTotal)/costTotal*100:0};
+            visits,deals3,rev3g,rev3,prof3,hrs4,val4h,val4e,rev4,prof4,rev5,prof5,
+            cost,costTotal,mediaCost,curSys,netCost,nMedia,visitsUp,dealsUp,
+            rev,prof,net:prof-netCost,
+            roi:netCost>0?(prof-netCost)/netCost*100:null};
   }
   const calcAll = () => VENUES.map(v => ({v, r:calc(VS[v.id], G)}));
 
@@ -484,7 +538,8 @@
                 ['③ ゲストメルマガ',r.prof3,css('--s3')],
                 ['④ SIRCLE 準備',r.prof4,css('--s4')],
                 ['⑤ FUWEL MICE',r.prof5,css('--s5')]];
-    const max=Math.max(r.costTotal,...rows.map(d=>d[1]))*1.18||1;
+    const CL=Math.max(r.netCost,0);
+    const max=Math.max(CL,...rows.map(d=>d[1]))*1.18||1;
     const x=v=>L+(W-L-R)*v/max;
     const bh=30, gap=14;
     for(let i=0;i<=4;i++){const v=max*i/4;
@@ -504,13 +559,13 @@
         'font-size':12,'font-weight':600,fill:inside?'#fff':css('--ink'),
         'font-family':'Jost, sans-serif'},s).textContent=man(d[1])+' 万円';
     });
-    const cx=x(r.costTotal);
+    const cx=x(CL);
     mk('line',{x1:cx,y1:T-8,x2:cx,y2:H-B+4,stroke:css('--neg'),'stroke-width':2,
       'stroke-dasharray':'5 4'},s);
-    const lblRight = cx < W-190;
+    const lblRight = cx < W-210;
     mk('text',{x:lblRight?cx+7:cx-7,y:T-1,'text-anchor':lblRight?'start':'end',
       'font-size':10.5,fill:css('--neg'),'font-weight':600},s)
-      .textContent='年間システム費用 '+man(r.costTotal)+' 万円';
+      .textContent=(r.netCost>0?'増えるコスト '+man(r.netCost)+' 万円':'コストは増えません');
     mk('text',{x:0,y:H-4,'font-size':10,fill:css('--ink-3')},s).textContent='単位：万円／年（この会場）';
   }
 
@@ -560,20 +615,25 @@
         +'<td style="color:var(--ink-3)">'+d.v.p+'</td>'
         +'<td class="n">'+p.media+'</td>'
         +'<td class="n">'+fmt(p.weddings)+'</td>'
-        +'<td class="n">'+fmt(p.hpbase,1)+'</td>'
+        +'<td class="n">'+fmt(d.r.visitsUp,1)+'</td>'
         +'<td class="n">'+man(d.r.prof)+'</td>'
-        +'<td class="n" style="color:var(--neg)">▲'+man(d.r.costTotal)+'</td>'
+        +'<td class="n" style="color:'+(d.r.netCost>0?'var(--neg)':'var(--pos)')+'">'
+        +(d.r.netCost>0?'▲'+man(d.r.netCost):'＋'+man(-d.r.netCost))+'</td>'
         +'<td class="n" style="font-weight:700;color:'+(d.r.net>=0?'var(--pos)':'var(--neg)')+'">'
         +(d.r.net>=0?'＋':'▲')+man(Math.abs(d.r.net))+'</td>'
         +'<td>'+on+'</td></tr>';
     });
     el('vtb').innerHTML=h;
-    const T={prof:0,cost:0,net:0,w:0};
-    all.forEach(d=>{T.prof+=d.r.prof;T.cost+=d.r.costTotal;T.net+=d.r.net;T.w+=VS[d.v.id].weddings;});
+    const T={prof:0,cost:0,net:0,w:0,vis:0,deals:0,media:0,cur:0,tp:0};
+    all.forEach(d=>{T.prof+=d.r.prof;T.cost+=d.r.netCost;T.net+=d.r.net;T.w+=VS[d.v.id].weddings;
+                    T.vis+=d.r.visitsUp;T.deals+=d.r.dealsUp;T.media+=d.r.mediaCost;
+                    T.cur+=d.r.curSys;T.tp+=d.r.costTotal;});
     el('vtf').innerHTML='<tr class="sum"><td>合計（39会場）</td><td></td><td></td>'
-      +'<td class="n">'+fmt(T.w)+'</td><td></td>'
+      +'<td class="n">'+fmt(T.w)+'</td>'
+      +'<td class="n">'+fmt(T.vis,0)+'</td>'
       +'<td class="n">'+man(T.prof)+'</td>'
-      +'<td class="n" style="color:var(--neg)">▲'+man(T.cost)+'</td>'
+      +'<td class="n" style="color:'+(T.cost>0?'var(--neg)':'var(--pos)')+'">'
+      +(T.cost>0?'▲'+man(T.cost):'＋'+man(-T.cost))+'</td>'
       +'<td class="n" style="color:'+(T.net>=0?'var(--pos)':'var(--neg)')+'">'
       +(T.net>=0?'＋':'▲')+man(Math.abs(T.net))+'</td><td></td></tr>';
     el('vtb').querySelectorAll('tr.vrow').forEach(tr=>{
@@ -602,10 +662,20 @@
     Object.entries(r.cost).forEach(([k,v])=>{
       h+='<tr class="cost"><td>　'+k+'</td><td></td><td class="n">–</td><td class="n">▲'+man(v)+'</td></tr>';
     });
-    h+='<tr class="sum cost"><td>システム費用 合計</td><td></td><td class="n">–</td><td class="n">▲'+
+    h+='<tr class="sum cost"><td>トライスパイド費用 合計</td><td></td><td class="n">–</td><td class="n">▲'+
        man(r.costTotal)+'</td></tr>';
+    h+='<tr><td>　いまのシステム費用（不要になる分）</td><td class="n">月'+
+       fmt(r.curSys/12,1)+'万円</td><td class="n">–</td><td class="n" style="color:var(--pos)">＋'+
+       man(r.curSys)+'</td></tr>';
+    h+='<tr class="sum"><td>増えるコスト</td><td></td><td class="n">–</td><td class="n" style="color:'+
+       (r.netCost>0?'var(--neg)':'var(--pos)')+'">'+
+       (r.netCost>0?'▲'+man(r.netCost):'＋'+man(-r.netCost))+'</td></tr>';
     h+='<tr class="sum"><td>差引</td><td></td><td class="n">–</td><td class="n" style="color:'+
        (r.net>=0?'var(--pos)':'var(--neg)')+'">'+(r.net>=0?'＋':'▲')+man(Math.abs(r.net))+'</td></tr>';
+    h+='<tr><td style="color:var(--ink-3)">　参考：媒体掲載費（'+r.nMedia+'媒体・導入後も変わりません）</td>'
+      +'<td class="n" style="color:var(--ink-3)">月'+fmt(r.mediaCost/12,1)+'万円</td>'
+      +'<td class="n" style="color:var(--ink-3)">–</td>'
+      +'<td class="n" style="color:var(--ink-3)">'+man(r.mediaCost)+'</td></tr>';
     el('tb').innerHTML=h;
   }
 
@@ -616,16 +686,54 @@
     const r = all[cur].r;
     const T = venueTable(all);
 
+    const N=VENUES.length;
     el('k-all').innerHTML=(T.net>=0?'＋':'▲')+oku(Math.abs(T.net))+'<span class="unit">億円</span>';
-    el('k-allfoot').textContent='39会場 × 平均 '+man(T.net/39)+'万円';
+    el('k-allfoot').textContent=N+'会場 × 平均 '+man(T.net/N)+'万円';
+    el('k-visits').innerHTML=fmt(T.vis,0)+'<span class="unit">件</span>';
     el('k-allprof').innerHTML=oku(T.prof)+'<span class="unit">億円</span>';
-    el('k-allcost').innerHTML=oku(T.cost)+'<span class="unit">億円</span>';
-    el('k-allroi').innerHTML=fmt(T.cost>0?T.net/T.cost*100:0,0)+'<span class="unit">%</span>';
+    if(T.cost>0){
+      el('k-costlab').textContent='増えるコスト';
+      el('k-allcost').innerHTML='▲'+oku(T.cost)+'<span class="unit">億円</span>';
+      el('k-costfoot').textContent='ROI '+fmt(T.net/T.cost*100,0)+'%';
+    } else {
+      el('k-costlab').textContent='下がるコスト';
+      el('k-allcost').innerHTML='＋'+oku(-T.cost)+'<span class="unit">億円</span>';
+      el('k-costfoot').textContent='いまのシステム費用のほうが高い状態です';
+    }
     el('k-onelab').textContent=v.n;
     el('k-one').innerHTML=(r.net>=0?'＋':'▲')+man(Math.abs(r.net))+'<span class="unit">万円</span>';
-    el('k-onefoot').textContent='ROI '+fmt(r.roi,0)+'%／'+v.p;
+    el('k-onefoot').textContent=(r.roi===null?'コスト増なし':'ROI '+fmt(r.roi,0)+'%')+'／'+v.p;
     const ns=Object.keys(SAVED).length;
-    el('k-saved').innerHTML=fmt(ns)+'<span class="unit">/ 39 会場</span>';
+    el('k-saved').innerHTML=fmt(ns)+'<span class="unit">/ '+N+' 会場</span>';
+
+    // いまと、導入後
+    const sign=x=>(x>=0?'＋':'▲')+man(Math.abs(x));
+    const dCost=T.tp-T.cur;
+    let c='';
+    const row=(lab,now,aft,dif,cls)=>{
+      c+='<tr'+(cls?' class="'+cls+'"':'')+'><td>'+lab+'</td>'
+        +'<td class="n">'+now+'</td><td class="n">'+aft+'</td><td class="n">'+dif+'</td></tr>';
+    };
+    row('媒体掲載費', man(T.media), man(T.media),
+        '<span style="color:var(--ink-3)">変わりません</span>');
+    row('システム費用', man(T.cur), man(T.tp),
+        '<span style="color:'+(dCost>0?'var(--neg)':'var(--pos)')+'">'+sign(-dCost)+'</span>');
+    row('年間コスト 合計', man(T.media+T.cur), man(T.media+T.tp),
+        '<span style="color:'+(dCost>0?'var(--neg)':'var(--pos)')+'">'+sign(-dCost)+'</span>', 'sum');
+    row('年間 来館数', '<span style="color:var(--ink-3)">現状</span>',
+        '<span style="color:var(--pos)">＋'+fmt(T.vis,0)+' 件</span>', '＋'+fmt(T.vis,0)+' 件');
+    row('年間 成約組数', '<span style="color:var(--ink-3)">現状</span>',
+        '<span style="color:var(--pos)">＋'+fmt(T.deals,1)+' 組</span>', '＋'+fmt(T.deals,1)+' 組');
+    row('年間 利益', '<span style="color:var(--ink-3)">現状</span>',
+        '<span style="color:var(--pos)">＋'+man(T.prof)+'</span>', '＋'+man(T.prof), 'sum');
+    c+='<tr class="sum"><td>差引</td><td class="n">–</td><td class="n">–</td>'
+      +'<td class="n" style="color:'+(T.net>=0?'var(--pos)':'var(--neg)')+'">'+sign(T.net)+'</td></tr>';
+    el('cmp').innerHTML=c;
+    el('cmpnote').textContent =
+      (T.cur>0
+        ? 'いまのシステム費用 '+man(T.cur)+'万円が不要になるので、実質の負担増は '+man(Math.max(dCost,0))+'万円です。'
+        : 'いまのシステム費用を0のままにしています。ヒアリングで判明したら左のパネルに入れてください。そのぶん実質負担は下がります。')
+      + '単位はすべて万円／年、全'+N+'会場の合計です。媒体掲載費はトライスパイド導入では減らないため、同額を置いています。';
 
     el('vh').textContent='この会場の前提｜'+v.n;
     el('vlegend').textContent=v.n+'（'+v.p+'）';
@@ -647,9 +755,9 @@
     const p = VS[VENUES[cur].id];
     VKEYS.forEach(k => { const n=parseFloat(el('v_'+k).value); if(isFinite(n)) p[k]=n; });
   }
-  function loadGlobal(){ GKEYS.forEach(k => el(k.startsWith('c_')?k:'i_'+k).value = G[k]); }
+  function loadGlobal(){ GKEYS.forEach(k => inp(k).value = G[k]); }
   function readGlobal(){
-    GKEYS.forEach(k => { const n=parseFloat(el(k.startsWith('c_')?k:'i_'+k).value); if(isFinite(n)) G[k]=n; });
+    GKEYS.forEach(k => { const n=parseFloat(inp(k).value); if(isFinite(n)) G[k]=n; });
   }
 
   /* ---------- 保存先（claude.ai の共有DB → ブラウザ保存 → メモリのみ） ---------- */
@@ -790,7 +898,7 @@
   el('vsel').innerHTML = VENUES.map((v,i)=>'<option value="'+i+'">'+v.n+'（'+v.p+'）</option>').join('');
   el('vsel').addEventListener('change', ()=>{ cur=+el('vsel').value; loadVenue(); });
   VKEYS.forEach(k => el('v_'+k).addEventListener('input', ()=>{ clearScenario(); readVenue(); render(); }));
-  GKEYS.forEach(k => el(k.startsWith('c_')?k:'i_'+k)
+  GKEYS.forEach(k => inp(k)
     .addEventListener('input', ()=>{ clearScenario(); readGlobal(); render(); }));
   el('reset').addEventListener('click', ()=>{
     G=Object.assign({},GDEF);
