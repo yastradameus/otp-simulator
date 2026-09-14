@@ -89,7 +89,7 @@
          align-items:center;gap:7px}
   .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
   .fld{display:grid;grid-template-columns:1fr 74px 36px;gap:8px;align-items:center;margin-top:9px}
-  .fld label{font-size:11.5px;color:var(--ink-2)}
+  .fld label{font-size:11.5px;color:var(--ink-2);min-width:0;line-height:1.45;overflow-wrap:anywhere}
   .fld input{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;
     text-align:right;padding:6px 8px;border:1px solid var(--line-2);border-radius:6px;
     background:var(--surface);color:var(--ink);width:100%}
@@ -289,9 +289,11 @@
             <div class="fld"><label for="x_media">媒体一括管理</label><input id="x_media" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="x_cms">自社HP CMS</label><input id="x_cms" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="x_erp">基幹システム</label><input id="x_erp" type="number" step="0.5"><span class="suf">万円</span></div>
-            <div class="fld"><label for="x_prep">準備システム</label><input id="x_prep" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="x_prep">準備システム（ONEW）</label><input id="x_prep" type="number" step="0.5"><span class="suf">万円</span></div>
             <div class="fld"><label for="x_ma">マーケティングオートメーション</label><input id="x_ma" type="number" step="0.5"><span class="suf">万円</span></div>
-            <div class="hint">いまお使いのシステムの費用。トライスパイドに置き換わる領域なので、この分だけ導入後のコストから差し引きます。使っていない領域は0のままで構いません。</div>
+            <div class="fld"><label for="x_mice">宴会予約システム</label><input id="x_mice" type="number" step="0.5"><span class="suf">万円</span></div>
+            <div class="fld"><label for="x_prepu">準備システム（ONEW）従量</label><input id="x_prepu" type="number" step="0.1"><span class="suf">万円/組</span></div>
+            <div class="hint">いまお使いのシステムの費用。トライスパイドに置き換わる領域なので、この分だけ導入後のコストから差し引きます。使っていない領域は0のままで構いません。従量課金は、年間施行組数を掛けて計上します。</div>
           </fieldset>
 
           <fieldset>
@@ -431,7 +433,7 @@
     hmtg:3, hmin:1.5, hseat:2, ec:15000, banqp:30,
     m_zexy:0, m_minna:0, m_wpark:0, m_hana_unit:7, m_hana_cnt:0,
     m_mynavi:0, m_tokihana:0, m_wnews:0,
-    x_media:0, x_cms:0, x_erp:0, x_prep:0, x_ma:0,
+    x_media:0, x_cms:0, x_erp:0, x_prep:0, x_ma:0, x_mice:0, x_prepu:0,
     c_tascut:1, c_fuwel:5, c_mice:5, c_erp:20, c_prep:5, c_ma:5,
     c_prepu:1, c_inprint:1
   };
@@ -507,7 +509,8 @@
                    g.m_mynavi, g.m_tokihana, g.m_wnews];
     const nMedia = Math.max(0, Math.min(Math.round(vp.media), mlist.length));
     const mediaCost = mlist.slice(0, nMedia).reduce((a,b)=>a+b,0) * 12;
-    const curSys = (g.x_media + g.x_cms + g.x_erp + g.x_prep + g.x_ma) * 12;
+    const curSys = (g.x_media + g.x_cms + g.x_erp + g.x_prep + g.x_ma + g.x_mice) * 12
+                 + g.x_prepu * w;
     const netCost = costTotal - curSys;          // 純増コスト（マイナスなら費用が減る）
 
     // 来館の増加：FUWEL経由 ＋ ゲストメルマガ経由
